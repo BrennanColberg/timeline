@@ -1,7 +1,7 @@
 import { createGame, render, attemptToPlaceCard } from "./timeline.js"
 import { loadEvents } from "./io.js"
 
-const url = "public/DEFAULT_DECK.json"
+const url = "public/decks/presidents.json"
 const deck = await loadEvents(url)
 console.log(deck)
 
