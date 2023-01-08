@@ -1,14 +1,16 @@
-import { createGame, render, attemptToPlaceCard } from "./timeline.js"
+import {
+  createGame,
+  render,
+  attemptToPlaceCard,
+  GameState,
+} from "./timeline.js"
 import { loadEvents } from "./io.js"
 
-const url = "public/decks/presidents.json"
-const deck = await loadEvents(url)
-console.log(deck)
+let deckUrls = ["public/decks/presidents.json", "public/decks/test.json"]
+let game: GameState | undefined = undefined
 
-console.log("hello world")
-
-let game = createGame(deck)
 const handler = (indexAfterLocation: number) => {
+  if (!game) return
   try {
     game = attemptToPlaceCard(game, indexAfterLocation)
     render(game, handler)
@@ -16,4 +18,13 @@ const handler = (indexAfterLocation: number) => {
     alert(e.message)
   }
 }
-render(game, handler)
+
+async function resetGame() {
+  const decks = await Promise.all(deckUrls.map(loadEvents))
+  const deck = decks.flat()
+  console.log("starting game with deck", deck)
+  game = createGame(deck)
+  render(game, handler)
+}
+
+resetGame()

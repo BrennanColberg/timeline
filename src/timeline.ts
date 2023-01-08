@@ -3,7 +3,7 @@ export type Event = {
   title: string
 }
 
-type GameState = {
+export type GameState = {
   deck: Event[]
   focused?: Event
   timeline: Event[]
