@@ -98,7 +98,7 @@ export function render(
   {
     // seed "before everything else" button to solve fencepost problem
     const button = document.createElement("button")
-    button.textContent = "here"
+    button.textContent = "before"
     button.onclick = () => onClick(0, undefined, timelineEvents[0].year)
     timelineElements.push(button)
   }
@@ -121,7 +121,7 @@ export function render(
     const afterYear = timelineEvents[i].year
     const beforeYear = timelineEvents[i + 1]?.year
     const button = document.createElement("button")
-    button.textContent = "here"
+    button.textContent = beforeYear ? "here" : "after"
     button.onclick = () => onClick(i + 1, afterYear, beforeYear)
     timelineElements.push(button)
   }
