@@ -96,9 +96,15 @@ export function render(
   const timelineEvents = game.timeline.sort((a, b) => a.year - b.year)
   const timelineElements = []
   {
+    const li = document.createElement("li")
+    const year = document.createElement("span")
+    year.classList.add("year")
+    year.textContent = "beginning of the universe"
+    li.appendChild(year)
+    timelineElements.push(li)
     // seed "before everything else" button to solve fencepost problem
     const button = document.createElement("button")
-    button.textContent = "before"
+    button.textContent = "here"
     button.onclick = () => onClick(0, undefined, timelineEvents[0].year)
     timelineElements.push(button)
   }
@@ -121,9 +127,19 @@ export function render(
     const afterYear = timelineEvents[i].year
     const beforeYear = timelineEvents[i + 1]?.year
     const button = document.createElement("button")
-    button.textContent = beforeYear ? "here" : "after"
+    button.textContent = "here"
     button.onclick = () => onClick(i + 1, afterYear, beforeYear)
     timelineElements.push(button)
+  }
+
+  {
+    // "now" at the bottom
+    const li = document.createElement("li")
+    const year = document.createElement("span")
+    year.classList.add("year")
+    year.textContent = "now"
+    li.appendChild(year)
+    timelineElements.push(li)
   }
 
   timeline.replaceChildren(...timelineElements)
