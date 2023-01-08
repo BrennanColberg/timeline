@@ -5,12 +5,12 @@ export type Event = {
 
 type GameState = {
   deck: Event[]
-  focused: Event
+  focused?: Event
   timeline: Event[]
 }
 
-function pickRandomCard(deck: Event[]): { event: Event; deck: Event[] } {
-  if (deck.length <= 0) throw new Error("empty deck")
+function pickRandomCard(deck: Event[]): { event?: Event; deck: Event[] } {
+  if (deck.length <= 0) return { event: undefined, deck: [] }
   const index = Math.floor(Math.random() * deck.length)
   return {
     event: deck[index],
@@ -19,9 +19,10 @@ function pickRandomCard(deck: Event[]): { event: Event; deck: Event[] } {
 }
 
 export function createGame(deck: Event[]): GameState {
+  if (deck.length < 2) throw new Error("deck not big enough")
   const { deck: deck2, event: event1 } = pickRandomCard(deck)
   const { deck: deck3, event: event2 } = pickRandomCard(deck2)
-  return { deck: deck3, focused: event1, timeline: [event2] }
+  return { deck: deck3, focused: event1!, timeline: [event2!] }
 }
 
 export function attemptToPlaceCard(
@@ -29,6 +30,7 @@ export function attemptToPlaceCard(
   indexAfterLocation: number,
 ) {
   game = structuredClone(game)
+  if (!game.focused) return game
 
   // 1. check if event is placed in the right location
   if (indexAfterLocation < 0 || indexAfterLocation > game.timeline.length + 1)
@@ -64,7 +66,14 @@ export function attemptToPlaceCard(
   return game
 }
 
-export function render(game: GameState): void {
+export function render(
+  game: GameState,
+  onClick: (
+    indexAfterLocation: number,
+    afterYear?: number,
+    beforeYear?: number,
+  ) => void,
+): void {
   // deck
   const deck = document.getElementById("deck")
   if (!deck) throw new Error("no deck in dom")
@@ -78,19 +87,41 @@ export function render(game: GameState): void {
       }),
   )
   // focused
-  const focused = document.getElementById("focused")
-  if (!focused) throw new Error("no focused in dom")
-  focused.textContent = game.focused.title
+  if (game.focused) {
+    const focused = document.getElementById("focused")
+    if (!focused) throw new Error("no focused in dom")
+    focused.textContent = game.focused.title
+  }
   // timeline
   const timeline = document.getElementById("timeline")
   if (!timeline) throw new Error("no timeline in dom")
-  timeline.replaceChildren(
-    ...game.timeline
-      .sort((a, b) => a.year - b.year)
-      .map((event) => {
-        const li = document.createElement("li")
-        li.textContent = `[${event.year}] ${event.title}`
-        return li
-      }),
-  )
+  const timelineEvents = game.timeline.sort((a, b) => a.year - b.year)
+  const timelineElements = []
+  {
+    // seed "before everything else" button to solve fencepost problem
+    const button = document.createElement("button")
+    button.textContent = `[before ${timelineEvents[0].year}]`
+    button.onclick = () => onClick(0, undefined, timelineEvents[0].year)
+    timelineElements.push(button)
+  }
+
+  for (let i = 0; i < timelineEvents.length; i++) {
+    // add event
+    const event = timelineEvents[i]
+    const li = document.createElement("li")
+    li.textContent = `[${event.year}] ${event.title}`
+    timelineElements.push(li)
+    // add button for after event
+    const afterYear = timelineEvents[i].year
+    const beforeYear = timelineEvents[i + 1]?.year
+    const button = document.createElement("button")
+    button.textContent =
+      beforeYear !== undefined
+        ? `[${afterYear}-${beforeYear}]`
+        : `[after ${afterYear}]`
+    button.onclick = () => onClick(i + 1, afterYear, beforeYear)
+    timelineElements.push(button)
+  }
+
+  timeline.replaceChildren(...timelineElements)
 }
