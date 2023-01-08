@@ -87,11 +87,9 @@ export function render(
       }),
   )
   // focused
-  if (game.focused) {
-    const focused = document.getElementById("focused")
-    if (!focused) throw new Error("no focused in dom")
-    focused.textContent = game.focused.title
-  }
+  const focused = document.getElementById("focused")
+  if (!focused) throw new Error("no focused in dom")
+  focused.textContent = game.focused ? game.focused.title : ""
   // timeline
   const timeline = document.getElementById("timeline")
   if (!timeline) throw new Error("no timeline in dom")
