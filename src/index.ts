@@ -8,9 +8,11 @@ import { loadEvents } from "./io.js"
 
 let game: GameState | undefined = undefined
 
-const button = document.querySelector("#menu button") as HTMLButtonElement
-button.addEventListener("click", start)
-async function start() {
+const menu = document.querySelector("#menu") as HTMLFormElement
+menu.addEventListener("submit", start)
+async function start(event: SubmitEvent) {
+  event.preventDefault()
+
   // get selected decks
   const select = document.querySelector("#menu select") as HTMLSelectElement
   const deckURLs = [...select.selectedOptions].map((option) => option.value)

@@ -45,14 +45,14 @@
     ></script>
   </head>
   <body>
-    <div id="menu">
+    <form id="menu">
       <label for="decks"></label>
-      <select name="decks" multiple>
+      <select name="decks" multiple required>
         <option value="public/decks/presidents.csv">American Presidents</option>
         <option value="public/decks/test.csv">Test</option>
       </select>
       <button>Start</button>
-    </div>
+    </form>
     <div id="game">
       <ul id="deck"></ul>
       <p id="focused"></p>
