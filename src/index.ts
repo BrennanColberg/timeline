@@ -6,7 +6,7 @@ import {
 } from "./timeline.js"
 import { loadEvents } from "./io.js"
 
-let deckUrls = ["public/decks/presidents.json", "public/decks/test.json"]
+let deckUrls = ["public/decks/presidents.csv", "public/decks/test.csv"]
 let game: GameState | undefined = undefined
 
 const handler = (indexAfterLocation: number) => {
