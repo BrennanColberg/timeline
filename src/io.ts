@@ -19,6 +19,7 @@ export async function loadEvents(url: string): Promise<Event[]> {
   const response = await fetch(url)
   if (response.status !== 200) throw new Error("invalid deck url")
   const text = await response.text()
-  console.log(text, csvToJson(text))
-  return csvToJson(text) as Event[]
+  const events = csvToJson(text) as Event[]
+  console.log(`loaded ${events.length} events from ${response.url}`)
+  return events
 }
