@@ -9,6 +9,13 @@ import { loadEvents } from "./io.js"
 let deckUrls = ["public/decks/presidents.csv", "public/decks/test.csv"]
 let game: GameState | undefined = undefined
 
+const button = document.querySelector("#menu button") as HTMLButtonElement
+button.addEventListener("click", start)
+export function start() {
+  const body = document.querySelector("body")
+  body?.classList.add("started")
+}
+
 const handler = (indexAfterLocation: number) => {
   if (!game) return
   try {

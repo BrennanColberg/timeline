@@ -2,6 +2,13 @@
 <html>
   <head>
     <style>
+      .started > #menu {
+        display: none;
+      }
+      :not(.started) > #game {
+        display: none;
+      }
+
       #deck {
         display: none;
       }
@@ -38,6 +45,9 @@
     ></script>
   </head>
   <body>
+    <div id="menu">
+      <button>Start</button>
+    </div>
     <div id="game">
       <ul id="deck"></ul>
       <p id="focused"></p>
