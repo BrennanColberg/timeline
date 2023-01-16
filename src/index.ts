@@ -6,14 +6,16 @@ import {
 } from "./timeline.js"
 import { loadEvents } from "./io.js"
 
-let deckUrls = ["public/decks/presidents.csv", "public/decks/test.csv"]
 let game: GameState | undefined = undefined
 
 const button = document.querySelector("#menu button") as HTMLButtonElement
 button.addEventListener("click", start)
 async function start() {
-  // select + compose deck
-  const decks = await Promise.all(deckUrls.map(loadEvents))
+  // get selected decks
+  const select = document.querySelector("#menu select") as HTMLSelectElement
+  const deckURLs = [...select.selectedOptions].map((option) => option.value)
+  // compose final deck from selected
+  const decks = await Promise.all(deckURLs.map(loadEvents))
   const deck = decks.flat()
   console.log("starting game with deck", deck)
 
