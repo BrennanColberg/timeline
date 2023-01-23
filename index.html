@@ -2,10 +2,9 @@
 <html>
   <head>
     <style>
-      .started > #menu {
-        display: none;
-      }
-      :not(.started) > #game {
+      body:not(.menu) > #menu,
+      body:not(.game) > #game,
+      body:not(.results) > #results {
         display: none;
       }
 
@@ -56,7 +55,7 @@
       src="https://plausible.io/js/script.js"
     ></script>
   </head>
-  <body>
+  <body class="menu">
     <form id="menu">
       <label for="select-decks">Select Decks</label>
       <select name="select-decks" multiple required>
@@ -72,6 +71,12 @@
       <ul id="deck"></ul>
       <p id="focused"></p>
       <ul id="timeline"></ul>
+    </div>
+    <div id="results">
+      <p>You placed <span id="correct-cards"></span> cards correctly!</p>
+      <!-- TODO maybe keep track of time as well -->
+      <!-- TODO maybe keep global leaderboard -->
+      <p>Your score is <span id="score"></span>.</p>
     </div>
   </body>
 </html>
