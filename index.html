@@ -58,12 +58,14 @@
   </head>
   <body>
     <form id="menu">
-      <label for="decks"></label>
-      <select name="decks" multiple required>
+      <label for="select-decks">Select Decks</label>
+      <select name="select-decks" multiple required>
         <option value="public/decks/presidents.csv">American Presidents</option>
         <option value="public/decks/elements.csv">Discovery of Elements</option>
         <option value="public/decks/test.csv">Test</option>
       </select>
+      <label for="upload-deck">Upload Deck</label>
+      <input type="file" accept="text/csv" name="upload-deck" />
       <button>Start</button>
     </form>
     <div id="game">

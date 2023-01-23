@@ -4,7 +4,7 @@ import {
   attemptToPlaceCard,
   GameState,
 } from "./timeline.js"
-import { loadEvents } from "./io.js"
+import { loadEvents, parseEventsFile } from "./io.js"
 
 let game: GameState | undefined = undefined
 
@@ -14,10 +14,16 @@ async function start(event: SubmitEvent) {
   event.preventDefault()
 
   // get selected decks
-  const select = document.querySelector("#menu select") as HTMLSelectElement
-  const deckURLs = [...select.selectedOptions].map((option) => option.value)
-  // compose final deck from selected
+  const formData = new FormData(event.target as HTMLFormElement)
+  const deckURLs = formData.getAll('select-decks') as string[]
   const decks = await Promise.all(deckURLs.map(loadEvents))
+
+  const file = formData.get('upload-deck') as File
+  if (file?.size > 0) {
+    const fileDeck = await parseEventsFile(file)
+    decks.push(fileDeck)
+  }
+
   const deck = decks.flat()
   console.log("starting game with deck", deck)
 
@@ -35,6 +41,5 @@ async function start(event: SubmitEvent) {
   render(game, handler)
 
   // mark as started (hides menu, shows game)
-  const body = document.querySelector("body")
-  body?.classList.add("started")
+  document.body.classList.add("started")
 }

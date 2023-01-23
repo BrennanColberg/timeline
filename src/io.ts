@@ -23,3 +23,10 @@ export async function loadEvents(url: string): Promise<Event[]> {
   console.log(`loaded ${events.length} events from ${response.url}`)
   return events
 }
+
+export async function parseEventsFile(file: File): Promise<Event[]> {
+  const text = await file.text()
+  const events = csvToJson(text) as Event[]
+  console.log(`loaded ${events.length} events from file ${file.name}`)
+  return events
+}
