@@ -6,14 +6,18 @@ import {
 } from "./timeline.js"
 import { loadEvents, parseEventsFile } from "./io.js"
 
+const MENU = document.getElementById("menu") as HTMLFormElement
+const PLAY_AGAIN = document.getElementById("play-again") as HTMLButtonElement
+
 let game: GameState | undefined = undefined
 
-document.getElementById("menu")!.addEventListener("submit", start)
+MENU.addEventListener("submit", start)
+PLAY_AGAIN.addEventListener("click", start)
 async function start(event: SubmitEvent | MouseEvent) {
   event.preventDefault()
 
   // get selected decks
-  const formData = new FormData(event.target as HTMLFormElement)
+  const formData = new FormData(MENU)
   const deckURLs = formData.getAll("select-decks") as string[]
   const decks = await Promise.all(deckURLs.map(loadEvents))
 
