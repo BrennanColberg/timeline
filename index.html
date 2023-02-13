@@ -13,17 +13,15 @@
   <body class="menu">
     <div class="bg-gray-50 min-h-screen min-w-screen">
       <form id="menu" class="flex flex-col items-center py-4">
-        <div class="mt-6 mb-10">
-          <h1 class="mb-4 font-bold text-xl text-center">
-            Welcome to Timeline!
-          </h1>
-          <p class="mb-3 w-96">
+        <div class="mt-6 mb-10 flex flex-col gap-3">
+          <h1 class="font-bold text-xl text-center">Welcome to Timeline!</h1>
+          <p class="w-96">
             This is based on
             <a href="https://amzn.to/3YCbHPc" class="underline" target="_blank"
               >the card game of the same name.</a
             >
           </p>
-          <p class="mb-3 w-96">
+          <p class="w-96">
             Your goal is to put historical events in their proper order. Each
             has a year, and you are to select the spot in the timeline where the
             event you are shown fits.
@@ -33,20 +31,21 @@
         <div
           class="flex flex-col items-center mx-auto bg-gray-200 px-10 py-5 rounded-lg shadow-md"
         >
-          <label for="select-decks" class="font-bold mb-2"
-            >Select Events:</label
-          >
-          <select name="select-decks" multiple required>
-            <option value="public/decks/presidents.csv">
-              American Presidents
-            </option>
-            <option value="public/decks/elements.csv">
-              Discovery of Elements
-            </option>
-            <option value="public/decks/test.csv">Test</option>
-          </select>
-          <!-- <label for="upload-deck">Upload Deck</label> -->
-          <!-- <input type="file" accept="text/csv" name="upload-deck" /> -->
+          <h2 class="font-bold mb-2">Select Events:</h2>
+          <div class="flex flex-col items-stretch gap-1">
+            <label
+              class="px-2 py-1 bg-purple-200 select-none cursor-pointer rounded-md hover:shadow-sm"
+              ><input type="checkbox" name="deck-presidents" /> American
+              Presidents</label
+            >
+            <label
+              class="px-2 py-1 bg-red-200 select-none cursor-pointer rounded-md hover:shadow-sm"
+            >
+              <input type="checkbox" name="deck-elements" /> Element
+              Discoveries</label
+            >
+          </div>
+
           <button
             class="w-36 h-10 text-xl bg-green-400 hover:bg-green-300 rounded-md hover:shadow-sm shadow-md mt-4 font-bold"
           >
