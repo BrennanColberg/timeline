@@ -5,6 +5,7 @@ import {
   GameState,
 } from "./timeline.js"
 import { loadEvents, parseEventsFile } from "./io.js"
+import type { Event } from "./timeline.js"
 
 const MENU = document.getElementById("menu") as HTMLFormElement
 const PLAY_AGAIN = document.getElementById("play-again") as HTMLButtonElement
@@ -18,16 +19,19 @@ async function start(event: SubmitEvent | MouseEvent) {
 
   // get selected decks
   const formData = new FormData(MENU)
-  const deckURLs = formData.getAll("select-decks") as string[]
-  const decks = await Promise.all(deckURLs.map(loadEvents))
-
-  const file = formData.get("upload-deck") as File
-  if (file?.size > 0) {
-    const fileDeck = await parseEventsFile(file)
-    decks.push(fileDeck)
+  console.log(formData.values())
+  const deck: Event[] = []
+  for (let [deckName, value] of formData) {
+    if (value === "on") {
+      const url = `public/decks/${deckName}.csv`
+      const events = await loadEvents(url)
+      deck.push(...events)
+    }
   }
-
-  const deck = decks.flat()
+  if (deck.length === 0) {
+    alert("Select at least one deck to continue!")
+    return
+  }
   console.log("starting game with deck", deck)
 
   // start game
