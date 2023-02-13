@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-body:not(.menu) > #menu,
-body:not(.game) > #game,
-body:not(.results) > #results {
+body:not(.menu) #menu,
+body:not(.game) #game,
+body:not(.results) #results {
   display: none;
 }
 

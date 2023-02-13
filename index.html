@@ -11,28 +11,61 @@
     ></script>
   </head>
   <body class="menu">
-    <form id="menu">
-      <label for="select-decks">Select Decks</label>
-      <select name="select-decks" multiple required>
-        <option value="public/decks/presidents.csv">American Presidents</option>
-        <option value="public/decks/elements.csv">Discovery of Elements</option>
-        <option value="public/decks/test.csv">Test</option>
-      </select>
-      <label for="upload-deck">Upload Deck</label>
-      <input type="file" accept="text/csv" name="upload-deck" />
-      <button>Start</button>
-    </form>
-    <div id="game">
-      <ul id="deck"></ul>
-      <p id="focused"></p>
-      <ul id="timeline"></ul>
-    </div>
-    <div id="results">
-      <p>You placed <span id="correct-cards"></span> cards correctly!</p>
-      <!-- TODO maybe keep track of time as well -->
-      <!-- TODO maybe keep global leaderboard -->
-      <p>Your score is <span id="score"></span>.</p>
-      <button id="play-again">Play Again</button>
+    <div class="bg-gray-50 min-h-screen min-w-screen">
+      <form id="menu" class="flex flex-col items-center py-4">
+        <div class="mt-6 mb-10">
+          <h1 class="mb-4 font-bold text-xl text-center">
+            Welcome to Timeline!
+          </h1>
+          <p class="mb-3 w-96">
+            This is based on
+            <a href="https://amzn.to/3YCbHPc" class="underline" target="_blank"
+              >the card game of the same name.</a
+            >
+          </p>
+          <p class="mb-3 w-96">
+            Your goal is to put historical events in their proper order. Each
+            has a year, and you are to select the spot in the timeline where the
+            event you are shown fits.
+          </p>
+          <p class="w-96">When you get a place wrong, you lose. Good luck!</p>
+        </div>
+        <div
+          class="flex flex-col items-center mx-auto bg-gray-200 px-10 py-5 rounded-lg shadow-md"
+        >
+          <label for="select-decks" class="font-bold mb-2"
+            >Select Events:</label
+          >
+          <select name="select-decks" multiple required>
+            <option value="public/decks/presidents.csv">
+              American Presidents
+            </option>
+            <option value="public/decks/elements.csv">
+              Discovery of Elements
+            </option>
+            <option value="public/decks/test.csv">Test</option>
+          </select>
+          <!-- <label for="upload-deck">Upload Deck</label> -->
+          <!-- <input type="file" accept="text/csv" name="upload-deck" /> -->
+          <button
+            class="w-36 h-10 text-xl bg-green-400 hover:bg-green-300 rounded-md hover:shadow-sm shadow-md mt-4 font-bold"
+          >
+            Start Game
+          </button>
+        </div>
+      </form>
+      <div id="game">
+        <ul id="deck"></ul>
+        <p id="focused"></p>
+        <ul id="timeline"></ul>
+      </div>
+      <div id="results">
+        <p>You placed <span id="correct-cards"></span> cards correctly!</p>
+        <!-- TODO maybe keep track of time as well -->
+        <!-- TODO maybe keep global leaderboard -->
+        <p>Your score is <span id="score"></span>.</p>
+        <button id="play-again">Play Again</button>
+      </div>
     </div>
   </body>
 </html>
