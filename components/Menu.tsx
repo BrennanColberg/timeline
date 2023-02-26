@@ -7,14 +7,13 @@ const DECK_OPTIONS = {
   presidents: { name: "American Presidents", color: "bg-purple-300" },
   elements: { name: "Element Discoveries", color: "bg-yellow-200" },
 } as const
-type Deck = keyof typeof DECK_OPTIONS
 
 export default function Menu({
   startGame,
 }: {
   startGame: (deck: Event[]) => void
 }) {
-  const [selectedDecks, setSelectedDecks] = useState<Set<Deck>>(new Set())
+  const [selectedDecks, setSelectedDecks] = useState<string[]>([])
   return (
     <form
       id="menu"
@@ -22,7 +21,7 @@ export default function Menu({
       onSubmit={async (e) => {
         e.preventDefault()
         const allDecks = await Promise.all(
-          [...selectedDecks].map((deck) => loadEvents(`/decks/${deck}.csv`)),
+          selectedDecks.map((deck) => loadEvents(`/decks/${deck}.csv`)),
         )
         const deck = allDecks.flat()
         if (!deck.length) return alert("Select at least one deck to play!")
@@ -62,20 +61,16 @@ export default function Menu({
               <input
                 type="checkbox"
                 name={deck}
-                checked={selectedDecks.has(deck as Deck)}
+                checked={selectedDecks.includes(deck)}
                 onChange={(e) => {
                   const checked = e.target.checked
-                  if (checked && !selectedDecks.has(deck as Deck))
+                  if (checked && !selectedDecks.includes(deck))
+                    setSelectedDecks((x) => [...x, deck])
+                  if (!checked && selectedDecks.includes(deck))
                     setSelectedDecks((x) => {
-                      const newDeck = new Set(x)
-                      x.add(deck as Deck)
-                      return newDeck
-                    })
-                  if (!checked && selectedDecks.has(deck as Deck))
-                    setSelectedDecks((x) => {
-                      const newDecks = new Set(x)
-                      x.delete(deck as Deck)
-                      return newDecks
+                      const index = x.indexOf(deck)
+                      if (index === -1) return x
+                      return [...x.slice(0, index), ...x.slice(index + 1)]
                     })
                 }}
               />{" "}
