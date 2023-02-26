@@ -3,9 +3,9 @@ import {
   render,
   attemptToPlaceCard,
   GameState,
-} from "./timeline.js"
-import { loadEvents, parseEventsFile } from "./io.js"
-import type { Event } from "./timeline.js"
+} from "../lib/timeline.js"
+import { loadEvents, parseEventsFile } from "../lib/io.js"
+import type { Event } from "../lib/timeline.js"
 
 const MENU = document.getElementById("menu") as HTMLFormElement
 const PLAY_AGAIN = document.getElementById("play-again") as HTMLButtonElement
