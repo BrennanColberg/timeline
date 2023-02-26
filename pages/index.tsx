@@ -12,7 +12,14 @@ export default function Home() {
     setGame(createGame(deck))
   }, [])
 
+  const playAgain = useCallback(() => {
+    setGame((game) => {
+      if (!game) return undefined
+      else return createGame([...game.deck, ...game.timeline])
+    })
+  }, [])
+
   if (game === undefined) return <Menu {...{ startGame }} />
   else if (!game.finished) return <Game {...{ game, setGame }} />
-  else return <Results />
+  else return <Results {...{ game, playAgain }} />
 }
