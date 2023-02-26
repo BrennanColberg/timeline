@@ -1,17 +1,18 @@
 import Game from "@/components/Game"
 import Menu from "@/components/Menu"
 import Results from "@/components/Results"
-import { Event } from "@/lib/timeline"
+import { createGame, Event, GameState } from "@/lib/timeline"
 import { useState, useCallback } from "react"
 
 export default function Home() {
-  const [mode, setMode] = useState<"menu" | "game" | "results">("menu")
+  const [game, setGame] = useState<GameState | undefined>(undefined)
 
   const startGame = useCallback((deck: Event[]) => {
     console.log("starting with deck", deck)
+    setGame(createGame(deck))
   }, [])
 
-  if (mode === "menu") return <Menu {...{ startGame }} />
-  if (mode === "game") return <Game />
-  if (mode === "results") return <Results />
+  if (game === undefined) return <Menu {...{ startGame }} />
+  else if (!game.finished) return <Game {...{ game }} />
+  else return <Results />
 }

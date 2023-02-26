@@ -7,6 +7,7 @@ export type GameState = {
   deck: Event[]
   focused?: Event
   timeline: Event[]
+  finished: boolean
 }
 
 function pickRandomCard(deck: Event[]): { event?: Event; deck: Event[] } {
@@ -22,126 +23,51 @@ export function createGame(deck: Event[]): GameState {
   if (deck.length < 2) throw new Error("deck not big enough")
   const { deck: deck2, event: event1 } = pickRandomCard(deck)
   const { deck: deck3, event: event2 } = pickRandomCard(deck2)
-  return { deck: deck3, focused: event1!, timeline: [event2!] }
+  return { deck: deck3, focused: event1!, timeline: [event2!], finished: false }
 }
 
 export function attemptToPlaceCard(
   game: GameState,
   indexAfterLocation: number,
 ) {
+  if (game.finished) throw new Error("no placing cards in finished game!")
   game = structuredClone(game)
   if (!game.focused) return game
+  try {
+    // 1. check if event is placed in the right location
+    if (indexAfterLocation < 0 || indexAfterLocation > game.timeline.length + 1)
+      throw new Error("index out of bounds")
+    // before everything on the timeline
+    if (indexAfterLocation === 0) {
+      if (game.timeline[0].year < game.focused.year)
+        throw new Error("too early")
+    }
+    // after everything on the timeline
+    else if (indexAfterLocation === game.timeline.length) {
+      if (game.timeline[game.timeline.length - 1].year > game.focused.year)
+        throw new Error("too late")
+    }
+    // in the middle of the timeline
+    else {
+      if (!(game.timeline[indexAfterLocation - 1].year <= game.focused.year))
+        throw new Error("event placed too late")
+      if (!(game.focused.year <= game.timeline[indexAfterLocation].year))
+        throw new Error("event placed too early")
+    }
 
-  // 1. check if event is placed in the right location
-  if (indexAfterLocation < 0 || indexAfterLocation > game.timeline.length + 1)
-    throw new Error("index out of bounds")
-  // before everything on the timeline
-  if (indexAfterLocation === 0) {
-    if (game.timeline[0].year < game.focused.year) throw new Error("too early")
+    // 2. actually place the event in the timeline
+    game.timeline = [
+      ...game.timeline.slice(0, indexAfterLocation),
+      game.focused,
+      ...game.timeline.slice(indexAfterLocation),
+    ]
+
+    // 3. focus on a new card, repeat
+    const { deck: newDeck, event: newFocused } = pickRandomCard(game.deck)
+    game.deck = newDeck
+    game.focused = newFocused
+    return game
+  } catch (error) {
+    return { ...game, finished: true }
   }
-  // after everything on the timeline
-  else if (indexAfterLocation === game.timeline.length) {
-    if (game.timeline[game.timeline.length - 1].year > game.focused.year)
-      throw new Error("too late")
-  }
-  // in the middle of the timeline
-  else {
-    if (!(game.timeline[indexAfterLocation - 1].year <= game.focused.year))
-      throw new Error("event placed too late")
-    if (!(game.focused.year <= game.timeline[indexAfterLocation].year))
-      throw new Error("event placed too early")
-  }
-
-  // 2. actually place the event in the timeline
-  game.timeline = [
-    ...game.timeline.slice(0, indexAfterLocation),
-    game.focused,
-    ...game.timeline.slice(indexAfterLocation),
-  ]
-
-  // 3. focus on a new card, repeat
-  const { deck: newDeck, event: newFocused } = pickRandomCard(game.deck)
-  game.deck = newDeck
-  game.focused = newFocused
-  return game
-}
-
-export function render(
-  game: GameState,
-  onClick: (
-    indexAfterLocation: number,
-    afterYear?: number,
-    beforeYear?: number,
-  ) => void,
-): void {
-  // deck
-  const deck = document.getElementById("deck")
-  if (!deck) throw new Error("no deck in dom")
-  deck.replaceChildren(
-    ...game.deck
-      .sort((a, b) => a.year - b.year)
-      .map((event) => {
-        const li = document.createElement("li")
-        li.textContent = event.title
-        return li
-      }),
-  )
-  // focused
-  const focused = document.getElementById("focused")
-  if (!focused) throw new Error("no focused in dom")
-  focused.textContent = game.focused ? game.focused.title : ""
-  // timeline
-  const timeline = document.getElementById("timeline")
-  if (!timeline) throw new Error("no timeline in dom")
-  const timelineEvents = game.timeline.sort((a, b) => a.year - b.year)
-  const timelineElements = []
-  {
-    const li = document.createElement("li")
-    const year = document.createElement("span")
-    year.className = "bg-blue-200"
-    year.classList.add("year")
-    year.textContent = "beginning of the universe"
-    li.appendChild(year)
-    timelineElements.push(li)
-    // seed "before everything else" button to solve fencepost problem
-    const button = document.createElement("button")
-    button.textContent = "here"
-    button.onclick = () => onClick(0, undefined, timelineEvents[0].year)
-    timelineElements.push(button)
-  }
-
-  for (let i = 0; i < timelineEvents.length; i++) {
-    // add event
-    const event = timelineEvents[i]
-    const li = document.createElement("li")
-    const year = document.createElement("span")
-    year.classList.add("year")
-    year.textContent = event.year + ""
-    li.appendChild(year)
-    timelineElements.push(li)
-    const title = document.createElement("span")
-    title.classList.add("title")
-    title.textContent = event.title
-    li.appendChild(title)
-    timelineElements.push(li)
-    // add button for after event
-    const afterYear = timelineEvents[i].year
-    const beforeYear = timelineEvents[i + 1]?.year
-    const button = document.createElement("button")
-    button.textContent = "here"
-    button.onclick = () => onClick(i + 1, afterYear, beforeYear)
-    timelineElements.push(button)
-  }
-
-  {
-    // "now" at the bottom
-    const li = document.createElement("li")
-    const year = document.createElement("span")
-    year.classList.add("year")
-    year.textContent = "now"
-    li.appendChild(year)
-    timelineElements.push(li)
-  }
-
-  timeline.replaceChildren(...timelineElements)
 }
