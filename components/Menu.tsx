@@ -25,6 +25,7 @@ export default function Menu({
           [...selectedDecks].map((deck) => loadEvents(`/decks/${deck}.csv`)),
         )
         const deck = allDecks.flat()
+        if (!deck.length) return alert("Select at least one deck to play!")
         startGame(deck)
       }}
     >
