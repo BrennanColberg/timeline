@@ -5,7 +5,7 @@ import { createGame, Event, GameState } from "@/lib/timeline"
 import { useState, useCallback } from "react"
 
 export default function Home() {
-  const [game, setGame] = useState<GameState | undefined>(undefined)
+  const [game, setGame] = useState<GameState>()
 
   const startGame = useCallback((deck: Event[]) => {
     console.log("starting with deck", deck)
@@ -13,6 +13,6 @@ export default function Home() {
   }, [])
 
   if (game === undefined) return <Menu {...{ startGame }} />
-  else if (!game.finished) return <Game {...{ game }} />
+  else if (!game.finished) return <Game {...{ game, setGame }} />
   else return <Results />
 }
