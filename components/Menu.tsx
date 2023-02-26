@@ -1,6 +1,33 @@
-export default function Menu() {
+import { useState } from "react"
+import { Event } from "@/lib/timeline"
+import { loadEvents } from "@/lib/io"
+import classNames from "classnames"
+
+const DECK_OPTIONS = {
+  presidents: { name: "American Presidents", color: "bg-purple-300" },
+  elements: { name: "Element Discoveries", color: "bg-yellow-200" },
+} as const
+type Deck = keyof typeof DECK_OPTIONS
+
+export default function Menu({
+  startGame,
+}: {
+  startGame: (deck: Event[]) => void
+}) {
+  const [selectedDecks, setSelectedDecks] = useState<Set<Deck>>(new Set())
   return (
-    <form id="menu" className="flex flex-col items-center py-4">
+    <form
+      id="menu"
+      className="flex flex-col items-center py-4"
+      onSubmit={async (e) => {
+        e.preventDefault()
+        const allDecks = await Promise.all(
+          [...selectedDecks].map((deck) => loadEvents(`/decks/${deck}.csv`)),
+        )
+        const deck = allDecks.flat()
+        startGame(deck)
+      }}
+    >
       <div className="mt-6 mb-10 flex flex-col gap-3">
         <h1 className="font-bold text-xl text-center">Welcome to Timeline!</h1>
         <p className="w-96">
@@ -23,12 +50,37 @@ export default function Menu() {
       <div className="flex flex-col items-center mx-auto bg-gray-200 px-10 py-5 rounded-lg shadow-md">
         <h2 className="font-bold mb-2">Select Events:</h2>
         <div className="flex flex-col items-stretch gap-1">
-          <label className="px-2 py-1 bg-purple-200 select-none cursor-pointer rounded-md hover:shadow-sm">
-            <input type="checkbox" name="presidents" /> American Presidents
-          </label>
-          <label className="px-2 py-1 bg-red-200 select-none cursor-pointer rounded-md hover:shadow-sm">
-            <input type="checkbox" name="elements" /> Element Discoveries
-          </label>
+          {Object.entries(DECK_OPTIONS).map(([deck, { color, name }]) => (
+            <label
+              className={classNames(
+                "px-2 py-1 select-none cursor-pointer rounded-md hover:shadow-sm",
+                color,
+              )}
+              key={deck}
+            >
+              <input
+                type="checkbox"
+                name={deck}
+                checked={selectedDecks.has(deck as Deck)}
+                onChange={(e) => {
+                  const checked = e.target.checked
+                  if (checked && !selectedDecks.has(deck as Deck))
+                    setSelectedDecks((x) => {
+                      const newDeck = new Set(x)
+                      x.add(deck as Deck)
+                      return newDeck
+                    })
+                  if (!checked && selectedDecks.has(deck as Deck))
+                    setSelectedDecks((x) => {
+                      const newDecks = new Set(x)
+                      x.delete(deck as Deck)
+                      return newDecks
+                    })
+                }}
+              />{" "}
+              {name}
+            </label>
+          ))}
         </div>
 
         <button className="w-36 h-10 text-xl bg-green-400 hover:bg-green-300 rounded-md hover:shadow-sm shadow-md mt-4 font-bold">
