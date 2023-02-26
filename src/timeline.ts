@@ -98,6 +98,7 @@ export function render(
   {
     const li = document.createElement("li")
     const year = document.createElement("span")
+    year.className = "bg-blue-200"
     year.classList.add("year")
     year.textContent = "beginning of the universe"
     li.appendChild(year)
