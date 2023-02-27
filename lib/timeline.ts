@@ -1,6 +1,13 @@
+export enum Difficulty {
+  Easy = -1,
+  Normal = 0,
+  Hard = 1,
+}
+
 export type Event = {
   year: number
   title: string
+  difficulty: Difficulty
 }
 
 export type GameState = {

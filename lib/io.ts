@@ -1,4 +1,4 @@
-import { Event } from "./timeline.js"
+import { Difficulty, Event } from "./timeline.js"
 
 function csvToJson(csv: string): object[] {
   const lines = csv.split("\n")
@@ -15,11 +15,28 @@ function csvToJson(csv: string): object[] {
     )
 }
 
-export async function loadEvents(url: string): Promise<Event[]> {
+export async function loadEvents(
+  url: string,
+  maxDifficulty: Difficulty,
+): Promise<Event[]> {
   const response = await fetch(url)
   if (response.status !== 200) throw new Error("invalid deck url")
   const text = await response.text()
-  const events = csvToJson(text) as Event[]
+  const rawEvents = csvToJson(text) as {
+    year: string
+    title: string
+    difficulty?: string
+  }[]
+  console.log(1, rawEvents)
+  let events: Event[] = rawEvents.map((event) => ({
+    title: event.title,
+    year: parseInt(event.year),
+    difficulty: parseInt(event.difficulty ?? "0") as Difficulty,
+  }))
+  console.log(2, events)
+  console.log(maxDifficulty)
+  events = events.filter((event) => event.difficulty <= maxDifficulty)
+  console.log(3, events)
   console.log(`loaded ${events.length} events from ${response.url}`)
   return events
 }

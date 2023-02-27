@@ -1,6 +1,6 @@
 import { GameState, attemptToPlaceCard } from "@/lib/timeline"
 import classNames from "classnames"
-import { Dispatch, SetStateAction } from "react"
+import { Dispatch, Fragment, SetStateAction } from "react"
 
 export default function Game({
   game,
@@ -23,7 +23,7 @@ export default function Game({
           ...game.timeline,
           { year: new Date().getFullYear(), title: "now" },
         ].map(({ title, year }, i) => (
-          <>
+          <Fragment key={title}>
             {i !== 0 && (
               <button
                 className="text-sm px-2 py-0.5 bg-yellow-200 hover:bg-yellow-300 transition-colors duration-150 rounded-lg shadow-md ml-4 my-1"
@@ -48,7 +48,7 @@ export default function Game({
               </div>
               {i !== 0 && <span>{title}</span>}
             </li>
-          </>
+          </Fragment>
         ))}
       </ul>
     </div>

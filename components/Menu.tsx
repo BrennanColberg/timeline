@@ -1,13 +1,18 @@
 import { useCallback, useState } from "react"
-import { Event } from "@/lib/timeline"
+import { Difficulty, Event } from "@/lib/timeline"
 import { loadEvents } from "@/lib/io"
 import classNames from "classnames"
 
 const DECK_OPTIONS = {
-  presidents: { name: "American Presidents", color: "bg-purple-300" },
-  elements: { name: "Element Discoveries", color: "bg-yellow-200" },
+  presidents: {
+    name: "American Presidents",
+    color: "bg-purple-300",
+  },
+  elements: {
+    name: "Element Discoveries",
+    color: "bg-yellow-200",
+  },
 } as const
-type Difficulty = "easy" | "normal" | "hard"
 
 export default function Menu({
   startGame,
@@ -51,7 +56,9 @@ export default function Menu({
       onSubmit={async (e) => {
         e.preventDefault()
         const allDecks = await Promise.all(
-          selectedDecks.map(({ deck }) => loadEvents(`/decks/${deck}.csv`)),
+          selectedDecks.map(({ deck, difficulty }) =>
+            loadEvents(`/decks/${deck}.csv`, difficulty),
+          ),
         )
         const deck = allDecks.flat()
         if (!deck.length) return alert("Select at least one deck to play!")
@@ -95,9 +102,9 @@ export default function Menu({
                     type="button"
                     className={classNames(
                       "bg-green-300 px-1 py-0.25 rounded-sm border-2",
-                      isSelected(deck, "easy") && "border-black",
+                      isSelected(deck, -1) && "border-black",
                     )}
-                    onClick={() => select(deck, "easy")}
+                    onClick={() => select(deck, -1)}
                   >
                     Easy
                   </button>
@@ -105,9 +112,9 @@ export default function Menu({
                     type="button"
                     className={classNames(
                       "bg-yellow-300 px-1 py-0.25 rounded-sm border-2",
-                      isSelected(deck, "normal") && "border-black",
+                      isSelected(deck, 0) && "border-black",
                     )}
-                    onClick={() => select(deck, "normal")}
+                    onClick={() => select(deck, 0)}
                   >
                     Normal
                   </button>
@@ -115,9 +122,9 @@ export default function Menu({
                     type="button"
                     className={classNames(
                       "bg-red-300 px-1 py-0.25 rounded-sm border-2",
-                      isSelected(deck, "hard") && "border-black",
+                      isSelected(deck, 1) && "border-black",
                     )}
-                    onClick={() => select(deck, "hard")}
+                    onClick={() => select(deck, 1)}
                   >
                     Hard
                   </button>
