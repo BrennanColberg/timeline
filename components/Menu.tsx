@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Difficulty, Event } from "@/lib/timeline"
 import { loadEvents } from "@/lib/io"
 import classNames from "classnames"
@@ -19,6 +19,27 @@ export default function Menu({
 }: {
   startGame: (deck: Event[]) => void
 }) {
+  const [deckDifficulties, setDeckDifficulties] = useState<{
+    [key: string]: Set<Difficulty>
+  }>()
+  useEffect(() => {
+    Promise.all(
+      Object.keys(DECK_OPTIONS).map((deck) =>
+        loadEvents(`/decks/${deck}.csv`).then((events) => {
+          const difficulties = new Set<Difficulty>()
+          events.forEach((event) => difficulties.add(event.difficulty))
+          return { deck, difficulties }
+        }),
+      ),
+    ).then((difficultySets) => {
+      const newDeckDifficulties: typeof deckDifficulties = {}
+      difficultySets.forEach(({ deck, difficulties }) => {
+        newDeckDifficulties[deck] = difficulties
+      })
+      setDeckDifficulties(newDeckDifficulties)
+    })
+  }, [])
+
   const [selectedDecks, setSelectedDecks] = useState<
     { deck: string; difficulty: Difficulty }[]
   >([])
@@ -103,8 +124,10 @@ export default function Menu({
                     className={classNames(
                       "bg-green-300 px-1 py-0.25 rounded-sm border-2",
                       isSelected(deck, -1) && "border-black",
+                      "disabled:opacity-0",
                     )}
                     onClick={() => select(deck, -1)}
+                    disabled={!deckDifficulties?.[deck].has(-1)}
                   >
                     Easy
                   </button>
@@ -113,8 +136,10 @@ export default function Menu({
                     className={classNames(
                       "bg-yellow-300 px-1 py-0.25 rounded-sm border-2",
                       isSelected(deck, 0) && "border-black",
+                      "disabled:opacity-0",
                     )}
                     onClick={() => select(deck, 0)}
+                    disabled={!deckDifficulties?.[deck].has(0)}
                   >
                     Normal
                   </button>
@@ -123,8 +148,10 @@ export default function Menu({
                     className={classNames(
                       "bg-red-300 px-1 py-0.25 rounded-sm border-2",
                       isSelected(deck, 1) && "border-black",
+                      "disabled:opacity-0",
                     )}
                     onClick={() => select(deck, 1)}
+                    disabled={!deckDifficulties?.[deck].has(1)}
                   >
                     Hard
                   </button>

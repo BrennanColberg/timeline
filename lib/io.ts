@@ -1,4 +1,4 @@
-import { Difficulty, Event } from "./timeline.js"
+import { Difficulty, Event } from "./timeline"
 
 function csvToJson(csv: string): object[] {
   const lines = csv.split("\n")
@@ -17,7 +17,7 @@ function csvToJson(csv: string): object[] {
 
 export async function loadEvents(
   url: string,
-  maxDifficulty: Difficulty,
+  maxDifficulty: Difficulty = Difficulty.Hard,
 ): Promise<Event[]> {
   const response = await fetch(url)
   if (response.status !== 200) throw new Error("invalid deck url")
