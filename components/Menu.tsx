@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { Event } from "@/lib/timeline"
 import { loadEvents } from "@/lib/io"
 import classNames from "classnames"
@@ -7,13 +7,43 @@ const DECK_OPTIONS = {
   presidents: { name: "American Presidents", color: "bg-purple-300" },
   elements: { name: "Element Discoveries", color: "bg-yellow-200" },
 } as const
+type Difficulty = "easy" | "normal" | "hard"
 
 export default function Menu({
   startGame,
 }: {
   startGame: (deck: Event[]) => void
 }) {
-  const [selectedDecks, setSelectedDecks] = useState<string[]>([])
+  const [selectedDecks, setSelectedDecks] = useState<
+    { deck: string; difficulty: Difficulty }[]
+  >([])
+
+  const isSelected = useCallback(
+    (
+      deck: string,
+      difficulty: Difficulty,
+      selections: typeof selectedDecks = selectedDecks,
+    ) =>
+      !!selections.find(
+        (selection) =>
+          selection.deck === deck && selection.difficulty === difficulty,
+      ),
+    [selectedDecks],
+  )
+
+  const select = useCallback(
+    (deck: string, difficulty: Difficulty) => {
+      setSelectedDecks((oldSelectedDecks) => {
+        const wasSelected = isSelected(deck, difficulty, oldSelectedDecks)
+        let newDeck = [...oldSelectedDecks]
+        newDeck = newDeck.filter((selection) => selection.deck !== deck)
+        if (!wasSelected) newDeck = [...newDeck, { deck, difficulty }]
+        return newDeck
+      })
+    },
+    [isSelected],
+  )
+
   return (
     <form
       id="menu"
@@ -21,7 +51,7 @@ export default function Menu({
       onSubmit={async (e) => {
         e.preventDefault()
         const allDecks = await Promise.all(
-          selectedDecks.map((deck) => loadEvents(`/decks/${deck}.csv`)),
+          selectedDecks.map(({ deck }) => loadEvents(`/decks/${deck}.csv`)),
         )
         const deck = allDecks.flat()
         if (!deck.length) return alert("Select at least one deck to play!")
@@ -48,38 +78,74 @@ export default function Menu({
         <p className="w-96">When you get a place wrong, you lose. Good luck!</p>
       </div>
       <div className="flex flex-col items-center mx-auto bg-gray-200 px-10 py-5 rounded-lg shadow-md">
-        <h2 className="font-bold mb-2">Select Events:</h2>
-        <div className="flex flex-col items-stretch gap-1">
-          {Object.entries(DECK_OPTIONS).map(([deck, { color, name }]) => (
-            <label
-              className={classNames(
-                "px-2 py-1 select-none cursor-pointer rounded-md hover:shadow-sm",
-                color,
-              )}
-              key={deck}
-            >
-              <input
-                type="checkbox"
-                name={deck}
-                checked={selectedDecks.includes(deck)}
-                onChange={(e) => {
-                  const checked = e.target.checked
-                  if (checked && !selectedDecks.includes(deck))
-                    setSelectedDecks((x) => [...x, deck])
-                  if (!checked && selectedDecks.includes(deck))
-                    setSelectedDecks((x) => {
-                      const index = x.indexOf(deck)
-                      if (index === -1) return x
-                      return [...x.slice(0, index), ...x.slice(index + 1)]
-                    })
-                }}
-              />{" "}
-              {name}
-            </label>
-          ))}
-        </div>
+        <table className="border-separate border-spacing-x-2 border-spacing-y-1">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Difficulty</th>
+              {/* <th>Weight</th> */}
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(DECK_OPTIONS).map(([deck, { color, name }]) => (
+              <tr key={deck}>
+                <td className="text-right">{name}</td>
+                <td>
+                  <button
+                    type="button"
+                    className={classNames(
+                      "bg-green-300 px-1 py-0.25 rounded-sm border-2",
+                      isSelected(deck, "easy") && "border-black",
+                    )}
+                    onClick={() => select(deck, "easy")}
+                  >
+                    Easy
+                  </button>
+                  <button
+                    type="button"
+                    className={classNames(
+                      "bg-yellow-300 px-1 py-0.25 rounded-sm border-2",
+                      isSelected(deck, "normal") && "border-black",
+                    )}
+                    onClick={() => select(deck, "normal")}
+                  >
+                    Normal
+                  </button>
+                  <button
+                    type="button"
+                    className={classNames(
+                      "bg-red-300 px-1 py-0.25 rounded-sm border-2",
+                      isSelected(deck, "hard") && "border-black",
+                    )}
+                    onClick={() => select(deck, "hard")}
+                  >
+                    Hard
+                  </button>
+                </td>
+                {/* <td className="font-mono text-center">
+                  <button
+                    type="button"
+                    className="bg-white text-semibold rounded-full px-1 inline-block font-bold shadow-sm"
+                  >
+                    -
+                  </button>
+                  <span className="mx-1 font-semibold">1</span>
+                  <button
+                    type="button"
+                    className="bg-white text-semibold rounded-full px-1 inline-block font-bold shadow-sm"
+                  >
+                    +
+                  </button>
+                </td> */}
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-        <button className="w-36 h-10 text-xl bg-green-400 hover:bg-green-300 rounded-md hover:shadow-sm shadow-md mt-4 font-bold">
+        <button
+          className="w-36 h-10 text-xl bg-green-400 hover:bg-green-500 rounded-md shadow-md mt-4 font-bold disabled:bg-gray-500 transition-colors duration-300 disabled:shadow-none"
+          disabled={selectedDecks.length === 0}
+        >
           Start Game
         </button>
       </div>
