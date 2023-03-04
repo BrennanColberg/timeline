@@ -45,7 +45,7 @@ export async function getAllDecks(): Promise<Map<string, Event[]>> {
     allDecksCache = new Map()
     await Promise.all(
       Object.keys(AVAILABLE_DECKS).map((deckId) =>
-        loadEvents(`/decks/${deckId}.csv`).then((events) => {
+        loadEvents(deckId).then((events) => {
           allDecksCache.set(deckId, events)
         }),
       ),

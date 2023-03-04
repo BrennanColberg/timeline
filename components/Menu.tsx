@@ -89,10 +89,12 @@ export default function Menu({
   const router = useRouter()
   useEffect(() => {
     const config = loadConfigFromQuery(router.query)
-    setSelectedDecks(config.decks)
-    setBlindMode(config.blindMode)
-    setMistakesAllowed(config.mistakesAllowed)
-    setSelectedDateRange([config.minYear, config.maxYear])
+    if (config) {
+      setSelectedDecks(config.decks)
+      setBlindMode(config.blindMode)
+      setMistakesAllowed(config.mistakesAllowed)
+      setSelectedDateRange([config.minYear, config.maxYear])
+    }
   }, [router.query])
 
   const start = useCallback(() => {
