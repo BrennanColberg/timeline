@@ -2,6 +2,7 @@ import Game from "@/components/Game"
 import Menu from "@/components/Menu"
 import Results from "@/components/Results"
 import { createGame, GameState, GameConfig } from "@/lib/timeline"
+import { useRouter } from "next/router"
 import { useState, useCallback } from "react"
 
 export default function Home() {

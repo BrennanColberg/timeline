@@ -4,9 +4,12 @@ import {
   Difficulty,
   GameConfig,
   getAllDecks,
+  isValidDeckId,
 } from "@/lib/timeline"
 import classNames from "classnames"
 import * as Slider from "@radix-ui/react-slider"
+import { useRouter } from "next/router"
+import { loadConfigFromQuery } from "@/lib/io"
 
 export default function Menu({
   startGame,
@@ -82,6 +85,15 @@ export default function Menu({
       } else setDateRange(undefined)
     })
   }, [selectedDecks])
+
+  const router = useRouter()
+  useEffect(() => {
+    const config = loadConfigFromQuery(router.query)
+    setSelectedDecks(config.decks)
+    setBlindMode(config.blindMode)
+    setMistakesAllowed(config.mistakesAllowed)
+    setSelectedDateRange([config.minYear, config.maxYear])
+  }, [router.query])
 
   const start = useCallback(() => {
     if (!selectedDecks.length) return alert("Select at least one deck to play!")
@@ -187,7 +199,7 @@ export default function Menu({
             checked={blindMode}
             onChange={(e) => setBlindMode(e.target.checked)}
           />{" "}
-          Hard Mode (no dates shown)
+          Blind Mode (no dates shown)
         </label>
 
         <label className="font-semibold">

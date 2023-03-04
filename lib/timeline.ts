@@ -5,6 +5,11 @@ export const AVAILABLE_DECKS = {
   scotus_decisions: "SCOTUS Decisions",
   elements: "Element Discoveries",
 } as const
+export function isValidDeckId(
+  deckId: string,
+): deckId is keyof typeof AVAILABLE_DECKS {
+  return deckId in AVAILABLE_DECKS
+}
 
 export enum Difficulty {
   Easy = -1,

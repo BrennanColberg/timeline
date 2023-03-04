@@ -1,4 +1,4 @@
-import { Difficulty, Event } from "./timeline"
+import { Difficulty, Event, GameConfig, isValidDeckId } from "./timeline"
 
 function csvToJson(csv: string): object[] {
   const lines = csv.split("\n")
@@ -49,4 +49,58 @@ export async function parseEventsFile(file: File): Promise<Event[]> {
   const events = csvToJson(text) as Event[]
   console.log(`loaded ${events.length} events from file ${file.name}`)
   return events
+}
+
+export function loadConfigFromQuery({
+  deck,
+  blindMode,
+  mistakesAllowed,
+  from,
+  to,
+}: {
+  [key: string]: string | string[] | undefined
+}) {
+  const config: GameConfig = {
+    decks: [],
+    blindMode: false,
+    mistakesAllowed: 0,
+    minYear: undefined,
+    maxYear: undefined,
+  }
+
+  // load selectedDecks
+  if (deck) {
+    const decks = typeof deck === "string" ? [deck] : deck
+    decks.forEach((deck) => {
+      const parts = deck.split("-")
+      const deckId = parts[0]
+      const difficulty = ["easy", "e"].includes(parts[1])
+        ? Difficulty.Easy
+        : ["normal", "n", "medium", "m"].includes(parts[1])
+        ? Difficulty.Normal
+        : ["hard", "h"].includes(parts[1])
+        ? Difficulty.Hard
+        : Difficulty.Normal // default
+      if (isValidDeckId(deckId)) config.decks.push({ difficulty, deckId })
+    })
+  }
+
+  // load blindMode
+  if (blindMode && typeof blindMode === "string")
+    config.blindMode = ["true", "on", "1"].includes(blindMode)
+
+  // load mistakesAllowed
+  if (mistakesAllowed && typeof mistakesAllowed === "string") {
+    const newMistakesAllowed = parseInt(mistakesAllowed)
+    if (Number.isFinite(newMistakesAllowed) && newMistakesAllowed >= 0)
+      config.mistakesAllowed = newMistakesAllowed
+  }
+
+  // load selectedDateRange
+  if (from && typeof from === "string" && Number.isFinite(parseInt(from)))
+    config.minYear = parseInt(from)
+  if (to && typeof to === "string" && Number.isFinite(parseInt(to)))
+    config.maxYear = parseInt(to)
+
+  return config
 }
