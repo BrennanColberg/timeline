@@ -22,7 +22,6 @@ export default function Menu({
   const [deckDifficulties, setDeckDifficulties] = useState<{
     [key: string]: Set<Difficulty>
   }>()
-  const [hardMode, setHardMode] = useState<boolean>(false)
 
   useEffect(() => {
     Promise.all(
@@ -45,6 +44,8 @@ export default function Menu({
   const [selectedDecks, setSelectedDecks] = useState<
     { deck: string; difficulty: Difficulty }[]
   >([])
+  const [hardMode, setHardMode] = useState<boolean>(false)
+  const [failuresAllowed, setFailuresAllowed] = useState<number>(0)
 
   const isSelected = useCallback(
     (
@@ -80,8 +81,8 @@ export default function Menu({
     )
     const deck = allDecks.flat()
     if (!deck.length) return alert("Select at least one deck to play!")
-    startGame(createGame(deck, { hardMode }))
-  }, [selectedDecks, startGame, hardMode])
+    startGame(createGame(deck, { hardMode, failuresAllowed }))
+  }, [selectedDecks, startGame, hardMode, failuresAllowed])
 
   return (
     <form
@@ -175,6 +176,18 @@ export default function Menu({
             onChange={(e) => setHardMode(e.target.checked)}
           />{" "}
           Hard Mode (no dates shown)
+        </label>
+
+        <label className="font-semibold">
+          <input
+            type="number"
+            className="w-10 mr-2 text-center font-normal"
+            value={failuresAllowed}
+            onChange={(e) => setFailuresAllowed(e.target.valueAsNumber)}
+            step={1}
+            min={0}
+          />
+          Failures Allowed
         </label>
 
         <button

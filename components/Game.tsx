@@ -14,7 +14,7 @@ export default function Game({
       {game.focused && (
         <p
           className={classNames(
-            "px-4 py-2 text-center font-semibold shadow-lg transition-colors duration-500 rounded-b-md",
+            "px-4 py-2 text-center font-semibold shadow-lg transition-colors duration-500 rounded-b-md z-10",
             {
               "bg-green-200": game.focused.difficulty === -1,
               "bg-yellow-200": game.focused.difficulty === 0,
@@ -25,6 +25,10 @@ export default function Game({
           {game.focused.title}
         </p>
       )}
+      <p className="text-center text-sm bg-gray-100 border-2 border-t-0 px-1 py-0.5 border-gray-300 ml-auto mr-3 -mb-4 rounded-b-lg text-gray-500">
+        {game.failuresAllowed + 1} more strike
+        {game.failuresAllowed !== 0 ? "s" : ""} and <i>you&apos;re out!</i>
+      </p>
 
       <div className="overflow-y-scroll scrollbar-hide">
         <ul className="mx-4 my-8 border-l-8 border-gray-400">
@@ -46,7 +50,16 @@ export default function Game({
                 <button
                   className="text-sm px-2 py-0.5 bg-gray-200 hover:bg-gray-300 transition-colors duration-150 rounded-lg shadow-md ml-4 my-1"
                   onClick={() => {
-                    setGame((game) => attemptToPlaceCard(game!, i - 1))
+                    const newGame = attemptToPlaceCard(game!, i - 1)
+                    if (newGame.failuresAllowed < game.failuresAllowed)
+                      alert(
+                        `Incorrect! You now have ${
+                          newGame.failuresAllowed + 1
+                        } strike${
+                          newGame.failuresAllowed === 0 ? "" : "s"
+                        } left.`,
+                      )
+                    setGame(newGame)
                   }}
                 >
                   ↕
