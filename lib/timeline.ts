@@ -19,11 +19,11 @@ export type Event = {
 }
 
 export type GameConfig = {
-  decks: { deckId: string; difficulty: Difficulty }[]
+  decks: { deckId: keyof typeof AVAILABLE_DECKS; difficulty: Difficulty }[]
   minYear?: number
   maxYear?: number
-  failuresAllowed: number
-  hardMode: boolean
+  mistakesAllowed: number
+  blindMode: boolean
 }
 export type GameState = {
   config: GameConfig
@@ -31,7 +31,7 @@ export type GameState = {
   focused?: Event
   timeline: Event[]
   finished: boolean
-  failuresRemaining: number
+  mistakesRemaining: number
 }
 
 let allDecksCache: Map<string, Event[]>
@@ -77,7 +77,7 @@ export async function createGame(config: GameConfig): Promise<GameState> {
     focused: event1!,
     timeline: [event2!],
     finished: false,
-    failuresRemaining: config.failuresAllowed,
+    mistakesRemaining: config.mistakesAllowed,
   }
 }
 
@@ -124,7 +124,7 @@ export function attemptToPlaceCard(
     if (game.focused === undefined) game.finished = true
     return game
   } catch (error) {
-    if (game.failuresRemaining > 0) game.failuresRemaining--
+    if (game.mistakesRemaining > 0) game.mistakesRemaining--
     else game.finished = true
     return game
   }

@@ -27,11 +27,9 @@ export default function Menu({
     })
   }, [])
 
-  const [selectedDecks, setSelectedDecks] = useState<
-    { deckId: string; difficulty: Difficulty }[]
-  >([])
-  const [hardMode, setHardMode] = useState<boolean>(false)
-  const [failuresAllowed, setFailuresAllowed] = useState<number>(0)
+  const [selectedDecks, setSelectedDecks] = useState<GameConfig["decks"]>([])
+  const [blindMode, setBlindMode] = useState<boolean>(false)
+  const [mistakesAllowed, setMistakesAllowed] = useState<number>(0)
 
   const isSelected = useCallback(
     (
@@ -47,7 +45,7 @@ export default function Menu({
   )
 
   const select = useCallback(
-    (deck: string, difficulty: Difficulty) => {
+    (deck: keyof typeof AVAILABLE_DECKS, difficulty: Difficulty) => {
       setSelectedDecks((oldSelectedDecks) => {
         const wasSelected = isSelected(deck, difficulty, oldSelectedDecks)
         let newDeck = [...oldSelectedDecks]
@@ -89,12 +87,12 @@ export default function Menu({
     if (!selectedDecks.length) return alert("Select at least one deck to play!")
     startGame({
       decks: selectedDecks,
-      hardMode,
-      failuresAllowed,
+      blindMode: blindMode,
+      mistakesAllowed,
       minYear: selectedDateRange[0],
       maxYear: selectedDateRange[1],
     })
-  }, [selectedDecks, startGame, hardMode, failuresAllowed, selectedDateRange])
+  }, [selectedDecks, startGame, blindMode, mistakesAllowed, selectedDateRange])
 
   return (
     <form
@@ -134,19 +132,21 @@ export default function Menu({
             </tr>
           </thead>
           <tbody>
-            {Object.entries(AVAILABLE_DECKS).map(([deck, name]) => (
-              <tr key={deck}>
-                <td className="text-right">{name}</td>
+            {(
+              Object.keys(AVAILABLE_DECKS) as (keyof typeof AVAILABLE_DECKS)[]
+            ).map((deckId) => (
+              <tr key={deckId}>
+                <td className="text-right">{AVAILABLE_DECKS[deckId]}</td>
                 <td>
                   <button
                     type="button"
                     className={classNames(
                       "bg-green-300 px-1 py-0.25 rounded-sm border-2",
-                      isSelected(deck, -1) && "border-black",
+                      isSelected(deckId, -1) && "border-black",
                       "disabled:opacity-0",
                     )}
-                    onClick={() => select(deck, -1)}
-                    disabled={!deckDifficulties?.get(deck)?.has(-1)}
+                    onClick={() => select(deckId, -1)}
+                    disabled={!deckDifficulties?.get(deckId)?.has(-1)}
                   >
                     Easy
                   </button>
@@ -154,11 +154,11 @@ export default function Menu({
                     type="button"
                     className={classNames(
                       "bg-yellow-300 px-1 py-0.25 rounded-sm border-2",
-                      isSelected(deck, 0) && "border-black",
+                      isSelected(deckId, 0) && "border-black",
                       "disabled:opacity-0",
                     )}
-                    onClick={() => select(deck, 0)}
-                    disabled={!deckDifficulties?.get(deck)?.has(0)}
+                    onClick={() => select(deckId, 0)}
+                    disabled={!deckDifficulties?.get(deckId)?.has(0)}
                   >
                     Normal
                   </button>
@@ -166,11 +166,11 @@ export default function Menu({
                     type="button"
                     className={classNames(
                       "bg-red-300 px-1 py-0.25 rounded-sm border-2",
-                      isSelected(deck, 1) && "border-black",
+                      isSelected(deckId, 1) && "border-black",
                       "disabled:opacity-0",
                     )}
-                    onClick={() => select(deck, 1)}
-                    disabled={!deckDifficulties?.get(deck)?.has(1)}
+                    onClick={() => select(deckId, 1)}
+                    disabled={!deckDifficulties?.get(deckId)?.has(1)}
                   >
                     Hard
                   </button>
@@ -184,8 +184,8 @@ export default function Menu({
           <input
             type="checkbox"
             className="inline-block mr-1"
-            checked={hardMode}
-            onChange={(e) => setHardMode(e.target.checked)}
+            checked={blindMode}
+            onChange={(e) => setBlindMode(e.target.checked)}
           />{" "}
           Hard Mode (no dates shown)
         </label>
@@ -194,12 +194,12 @@ export default function Menu({
           <input
             type="number"
             className="w-10 mr-2 text-center font-normal"
-            value={failuresAllowed}
-            onChange={(e) => setFailuresAllowed(e.target.valueAsNumber)}
+            value={mistakesAllowed}
+            onChange={(e) => setMistakesAllowed(e.target.valueAsNumber)}
             step={1}
             min={0}
           />
-          Failures Allowed
+          Mistakes Allowed
         </label>
 
         {dateRange && (
