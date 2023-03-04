@@ -6,11 +6,12 @@ import classNames from "classnames"
 const DECK_OPTIONS = {
   presidents: {
     name: "American Presidents",
-    color: "bg-purple-300",
+  },
+  scotus_decisions: {
+    name: "SCOTUS Decisions",
   },
   elements: {
     name: "Element Discoveries",
-    color: "bg-yellow-200",
   },
 } as const
 
@@ -122,7 +123,7 @@ export default function Menu({
             </tr>
           </thead>
           <tbody>
-            {Object.entries(DECK_OPTIONS).map(([deck, { color, name }]) => (
+            {Object.entries(DECK_OPTIONS).map(([deck, { name }]) => (
               <tr key={deck}>
                 <td className="text-right">{name}</td>
                 <td>

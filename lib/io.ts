@@ -3,16 +3,19 @@ import { Difficulty, Event } from "./timeline"
 function csvToJson(csv: string): object[] {
   const lines = csv.split("\n")
   const headers = lines[0].split(",")
-  return lines
-    .slice(1)
-    .map((line) =>
-      line
-        .split(",")
-        .reduce<object>(
-          (result, field, i) => ({ ...result, [headers[i]]: field }),
-          {},
-        ),
-    )
+  return lines.slice(1).map((line) =>
+    line
+      .split(",")
+      .map((field) =>
+        field.startsWith('"') && field.endsWith('"')
+          ? field.slice(1, -1)
+          : field,
+      )
+      .reduce<object>(
+        (result, field, i) => ({ ...result, [headers[i]]: field }),
+        {},
+      ),
+  )
 }
 
 export async function loadEvents(
