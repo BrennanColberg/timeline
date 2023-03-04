@@ -18,7 +18,12 @@ export default function Home() {
     setGame(initialGame)
   }, [initialGame])
 
+  const returnToMenu = useCallback(() => {
+    setInitialGame(undefined)
+    setGame(undefined)
+  }, [])
+
   if (game === undefined) return <Menu {...{ startGame }} />
   else if (!game.finished) return <Game {...{ game, setGame }} />
-  else return <Results {...{ game, playAgain }} />
+  else return <Results {...{ game, playAgain, returnToMenu }} />
 }
