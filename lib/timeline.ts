@@ -15,6 +15,7 @@ export type GameState = {
   focused?: Event
   timeline: Event[]
   finished: boolean
+  hardMode: boolean
 }
 
 function pickRandomCard(deck: Event[]): { event?: Event; deck: Event[] } {
@@ -26,11 +27,20 @@ function pickRandomCard(deck: Event[]): { event?: Event; deck: Event[] } {
   }
 }
 
-export function createGame(deck: Event[]): GameState {
+export function createGame(
+  deck: Event[],
+  { hardMode }: { hardMode?: boolean },
+): GameState {
   if (deck.length < 2) throw new Error("deck not big enough")
   const { deck: deck2, event: event1 } = pickRandomCard(deck)
   const { deck: deck3, event: event2 } = pickRandomCard(deck2)
-  return { deck: deck3, focused: event1!, timeline: [event2!], finished: false }
+  return {
+    deck: deck3,
+    focused: event1!,
+    timeline: [event2!],
+    finished: false,
+    hardMode: !!hardMode,
+  }
 }
 
 export function attemptToPlaceCard(

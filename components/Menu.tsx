@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Difficulty, Event } from "@/lib/timeline"
+import { createGame, Difficulty, Event, GameState } from "@/lib/timeline"
 import { loadEvents } from "@/lib/io"
 import classNames from "classnames"
 
@@ -17,11 +17,13 @@ const DECK_OPTIONS = {
 export default function Menu({
   startGame,
 }: {
-  startGame: (deck: Event[]) => void
+  startGame: (game: GameState) => void
 }) {
   const [deckDifficulties, setDeckDifficulties] = useState<{
     [key: string]: Set<Difficulty>
   }>()
+  const [hardMode, setHardMode] = useState<boolean>(false)
+
   useEffect(() => {
     Promise.all(
       Object.keys(DECK_OPTIONS).map((deck) =>
@@ -70,20 +72,24 @@ export default function Menu({
     [isSelected],
   )
 
+  const start = useCallback(async () => {
+    const allDecks = await Promise.all(
+      selectedDecks.map(({ deck, difficulty }) =>
+        loadEvents(`/decks/${deck}.csv`, difficulty),
+      ),
+    )
+    const deck = allDecks.flat()
+    if (!deck.length) return alert("Select at least one deck to play!")
+    startGame(createGame(deck, { hardMode }))
+  }, [selectedDecks, startGame, hardMode])
+
   return (
     <form
       id="menu"
       className="flex flex-col items-center py-4"
       onSubmit={async (e) => {
         e.preventDefault()
-        const allDecks = await Promise.all(
-          selectedDecks.map(({ deck, difficulty }) =>
-            loadEvents(`/decks/${deck}.csv`, difficulty),
-          ),
-        )
-        const deck = allDecks.flat()
-        if (!deck.length) return alert("Select at least one deck to play!")
-        startGame(deck)
+        start()
       }}
     >
       <div className="mt-6 mb-10 flex flex-col gap-3">
@@ -105,7 +111,7 @@ export default function Menu({
         </p>
         <p className="w-96">When you get a place wrong, you lose. Good luck!</p>
       </div>
-      <div className="flex flex-col items-center mx-auto bg-gray-200 px-10 py-5 rounded-lg shadow-md">
+      <div className="flex flex-col items-center mx-auto bg-gray-200 px-10 py-5 rounded-lg shadow-md gap-4">
         <table className="border-separate border-spacing-x-2 border-spacing-y-1">
           <thead>
             <tr>
@@ -156,25 +162,20 @@ export default function Menu({
                     Hard
                   </button>
                 </td>
-                {/* <td className="font-mono text-center">
-                  <button
-                    type="button"
-                    className="bg-white text-semibold rounded-full px-1 inline-block font-bold shadow-sm"
-                  >
-                    -
-                  </button>
-                  <span className="mx-1 font-semibold">1</span>
-                  <button
-                    type="button"
-                    className="bg-white text-semibold rounded-full px-1 inline-block font-bold shadow-sm"
-                  >
-                    +
-                  </button>
-                </td> */}
               </tr>
             ))}
           </tbody>
         </table>
+
+        <label className="font-semibold flex flex-row items-center">
+          <input
+            type="checkbox"
+            className="inline-block mr-1"
+            checked={hardMode}
+            onChange={(e) => setHardMode(e.target.checked)}
+          />{" "}
+          Hard Mode (no dates shown)
+        </label>
 
         <button
           className="w-36 h-10 text-xl bg-green-400 hover:bg-green-500 rounded-md shadow-md mt-4 font-bold disabled:bg-gray-500 transition-colors duration-300 disabled:shadow-none"

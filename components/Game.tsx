@@ -73,7 +73,11 @@ export default function Game({
                     },
                   )}
                 >
-                  {i !== 0 ? year : title}
+                  {i !== 0
+                    ? game.hardMode && title !== "now"
+                      ? "????"
+                      : year
+                    : title}
                 </div>
                 {i !== 0 && <span>{title}</span>}
               </li>
