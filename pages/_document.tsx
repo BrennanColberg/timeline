@@ -3,7 +3,13 @@ import { Html, Head, Main, NextScript } from "next/document"
 export default function Document() {
   return (
     <Html lang="en">
-      <Head />
+      <Head>
+        <script
+          defer
+          data-domain="timeline.colberg.dev"
+          src="https://plausible.io/js/script.js"
+        />
+      </Head>
       <body>
         <Main />
         <NextScript />
