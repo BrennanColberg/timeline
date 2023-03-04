@@ -53,7 +53,9 @@ export default function Game({
                     const newGame = attemptToPlaceCard(game!, i - 1)
                     if (newGame.mistakesRemaining < game.mistakesRemaining)
                       alert(
-                        `Incorrect! You now have ${
+                        `Nope! The correct year is ${
+                          game.focused!.year
+                        }.\n\nYou now have ${
                           newGame.mistakesRemaining + 1
                         } strike${
                           newGame.mistakesRemaining === 0 ? "" : "s"
