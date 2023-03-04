@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { createGame, Difficulty, Event, GameState } from "@/lib/timeline"
 import { loadEvents } from "@/lib/io"
 import classNames from "classnames"
+import * as Slider from "@radix-ui/react-slider"
 
 const DECK_OPTIONS = {
   presidents: {
@@ -20,27 +21,30 @@ export default function Menu({
 }: {
   startGame: (game: GameState) => void
 }) {
-  const [deckDifficulties, setDeckDifficulties] = useState<{
-    [key: string]: Set<Difficulty>
-  }>()
-
+  const [fullDecks, setFullDecks] = useState<Map<string, Event[]>>()
   useEffect(() => {
+    setFullDecks(new Map())
+    const newDecks = new Map<string, Event[]>()
     Promise.all(
-      Object.keys(DECK_OPTIONS).map((deck) =>
-        loadEvents(`/decks/${deck}.csv`).then((events) => {
-          const difficulties = new Set<Difficulty>()
-          events.forEach((event) => difficulties.add(event.difficulty))
-          return { deck, difficulties }
+      Object.keys(DECK_OPTIONS).map((deckId) =>
+        loadEvents(`/decks/${deckId}.csv`).then((events) => {
+          newDecks.set(deckId, events)
         }),
       ),
-    ).then((difficultySets) => {
-      const newDeckDifficulties: typeof deckDifficulties = {}
-      difficultySets.forEach(({ deck, difficulties }) => {
-        newDeckDifficulties[deck] = difficulties
-      })
-      setDeckDifficulties(newDeckDifficulties)
-    })
+    ).then(() => setFullDecks(newDecks))
   }, [])
+
+  const [deckDifficulties, setDeckDifficulties] =
+    useState<Map<string, Set<Difficulty>>>()
+  useEffect(() => {
+    const newDeckDifficulties = new Map<string, Set<Difficulty>>()
+    fullDecks?.forEach((events, deckId) => {
+      const difficulties = new Set<Difficulty>()
+      events.forEach((event) => difficulties.add(event.difficulty))
+      newDeckDifficulties.set(deckId, difficulties)
+    })
+    setDeckDifficulties(newDeckDifficulties)
+  }, [fullDecks])
 
   const [selectedDecks, setSelectedDecks] = useState<
     { deck: string; difficulty: Difficulty }[]
@@ -74,16 +78,70 @@ export default function Menu({
     [isSelected],
   )
 
-  const start = useCallback(async () => {
-    const allDecks = await Promise.all(
-      selectedDecks.map(({ deck, difficulty }) =>
-        loadEvents(`/decks/${deck}.csv`, difficulty),
-      ),
-    )
-    const deck = allDecks.flat()
+  const [dateRange, setDateRange] = useState<[min: number, max: number]>()
+  const [selectedDateRange, setSelectedDateRange] =
+    useState<[min: number, max: number]>()
+  useEffect(() => {
+    let minYear = Infinity
+    let maxYear = -Infinity
+    selectedDecks.forEach(({ deck, difficulty }) => {
+      fullDecks?.get(deck)?.forEach((event) => {
+        if (event.difficulty <= difficulty) {
+          minYear = Math.min(minYear, event.year)
+          maxYear = Math.max(maxYear, event.year)
+        }
+      })
+    })
+    if (minYear !== Infinity) {
+      setDateRange((oldLimits) => {
+        setSelectedDateRange((oldRange) => {
+          if (oldRange === undefined || oldLimits === undefined)
+            return [minYear, maxYear]
+
+          const newMin = Math.max(
+            Math.min(
+              oldRange[0] === oldLimits[0] ? minYear : oldRange[0],
+              maxYear,
+            ),
+            minYear,
+          )
+          const newMax = Math.max(
+            Math.min(
+              oldRange[1] === oldLimits[1] ? maxYear : oldRange[1],
+              maxYear,
+            ),
+            minYear,
+          )
+          return [newMin, newMax]
+        })
+        return [minYear, maxYear]
+      })
+    } else setDateRange(undefined)
+  }, [selectedDecks, fullDecks])
+
+  const start = useCallback(() => {
+    const deck = selectedDecks
+      .map(({ deck, difficulty }) =>
+        fullDecks?.get(deck)?.filter((event) => event.difficulty <= difficulty),
+      )
+      .filter((deck): deck is Event[] => deck !== undefined)
+      .flat()
+      .filter(
+        (event) =>
+          !selectedDateRange ||
+          (selectedDateRange[0] <= event.year &&
+            event.year <= selectedDateRange[1]),
+      )
     if (!deck.length) return alert("Select at least one deck to play!")
     startGame(createGame(deck, { hardMode, failuresAllowed }))
-  }, [selectedDecks, startGame, hardMode, failuresAllowed])
+  }, [
+    selectedDecks,
+    startGame,
+    hardMode,
+    failuresAllowed,
+    fullDecks,
+    selectedDateRange,
+  ])
 
   return (
     <form
@@ -135,7 +193,7 @@ export default function Menu({
                       "disabled:opacity-0",
                     )}
                     onClick={() => select(deck, -1)}
-                    disabled={!deckDifficulties?.[deck].has(-1)}
+                    disabled={!deckDifficulties?.get(deck)?.has(-1)}
                   >
                     Easy
                   </button>
@@ -147,7 +205,7 @@ export default function Menu({
                       "disabled:opacity-0",
                     )}
                     onClick={() => select(deck, 0)}
-                    disabled={!deckDifficulties?.[deck].has(0)}
+                    disabled={!deckDifficulties?.get(deck)?.has(0)}
                   >
                     Normal
                   </button>
@@ -159,7 +217,7 @@ export default function Menu({
                       "disabled:opacity-0",
                     )}
                     onClick={() => select(deck, 1)}
-                    disabled={!deckDifficulties?.[deck].has(1)}
+                    disabled={!deckDifficulties?.get(deck)?.has(1)}
                   >
                     Hard
                   </button>
@@ -190,6 +248,36 @@ export default function Menu({
           />
           Failures Allowed
         </label>
+
+        {dateRange && selectedDateRange && (
+          <>
+            <div className="flex flex-row items-center gap-2 text-gray-500">
+              {dateRange[0]}
+              <Slider.Root
+                className="relative flex items-center select-none touch-none w-[200px] h-5"
+                value={selectedDateRange}
+                onValueChange={(value) =>
+                  setSelectedDateRange([value[0], value[1]])
+                }
+                min={dateRange[0]}
+                max={dateRange[1]}
+                step={1}
+                minStepsBetweenThumbs={1}
+                // aria-label="Volume"
+              >
+                <Slider.Track className="bg-blackA10 relative grow rounded-full h-[3px]">
+                  <Slider.Range className="absolute bg-white rounded-full h-full" />
+                </Slider.Track>
+                <Slider.Thumb className="block w-5 h-5 bg-white shadow-[0_2px_10px] shadow-blackA7 rounded-[10px] hover:bg-violet3 focus:outline-none focus:shadow-[0_0_0_5px] focus:shadow-blackA8" />
+                <Slider.Thumb className="block w-5 h-5 bg-white shadow-[0_2px_10px] shadow-blackA7 rounded-[10px] hover:bg-violet3 focus:outline-none focus:shadow-[0_0_0_5px] focus:shadow-blackA8" />
+              </Slider.Root>
+              {dateRange[1]}
+            </div>
+            <p className="-mt-4">
+              from {selectedDateRange[0]} to {selectedDateRange[1]}
+            </p>
+          </>
+        )}
 
         <button
           className="w-36 h-10 text-xl bg-green-400 hover:bg-green-500 rounded-md shadow-md mt-4 font-bold disabled:bg-gray-500 transition-colors duration-300 disabled:shadow-none"

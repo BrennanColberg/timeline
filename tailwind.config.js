@@ -1,3 +1,5 @@
+const { blackA, violet } = require("@radix-ui/colors")
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -6,7 +8,12 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        ...blackA,
+        ...violet,
+      },
+    },
   },
   plugins: [],
 }
