@@ -10,7 +10,7 @@ export default function Game({
   setGame: Dispatch<SetStateAction<GameState | undefined>>
 }) {
   return (
-    <div className="flex flex-col max-w-screen-sm max-h-screen m-auto">
+    <div className="flex flex-col max-w-screen-sm max-h-screen m-auto relative">
       {game.focused && (
         <p
           className={classNames(
@@ -25,7 +25,7 @@ export default function Game({
           {game.focused.title}
         </p>
       )}
-      <p className="text-center text-sm bg-gray-100 border-2 border-t-0 px-1 py-0.5 border-gray-300 ml-auto mr-3 -mb-4 rounded-b-lg text-gray-500">
+      <p className="text-center text-sm bg-gray-100 border-2 border-t-0 px-1 py-0.5 border-gray-300 ml-auto mr-3 -mb-4 rounded-b-lg text-gray-500 absolute right-0 top-10">
         {game.failuresAllowed + 1} more strike
         {game.failuresAllowed !== 0 ? "s" : ""} and <i>you&apos;re out!</i>
       </p>
