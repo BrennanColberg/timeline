@@ -1,8 +1,8 @@
 import Game from "@/components/Game"
 import Menu from "@/components/Menu"
 import Results from "@/components/Results"
+import { generateURLFromConfig } from "@/lib/io"
 import { createGame, GameState, GameConfig } from "@/lib/timeline"
-import { useRouter } from "next/router"
 import { useState, useCallback } from "react"
 
 export default function Home() {
@@ -10,6 +10,7 @@ export default function Home() {
 
   const startGame = useCallback(async (config: GameConfig) => {
     console.log("starting game", config)
+    window.history.pushState(null, "", generateURLFromConfig(config))
     createGame(config).then(setGame)
   }, [])
 

@@ -52,11 +52,11 @@ export async function parseEventsFile(file: File): Promise<Event[]> {
 }
 
 export function loadConfigFromQuery({
-  deck,
-  blindMode,
-  mistakesAllowed,
-  from,
-  to,
+  d,
+  b,
+  m,
+  f,
+  t,
 }: {
   [key: string]: string | string[] | undefined
 }) {
@@ -69,8 +69,8 @@ export function loadConfigFromQuery({
   }
 
   // load selectedDecks
-  if (deck) {
-    const decks = typeof deck === "string" ? [deck] : deck
+  if (d) {
+    const decks = typeof d === "string" ? [d] : d
     decks.forEach((deck) => {
       const parts = deck.split("-")
       const deckId = parts[0]
@@ -86,21 +86,33 @@ export function loadConfigFromQuery({
   }
 
   // load blindMode
-  if (blindMode && typeof blindMode === "string")
-    config.blindMode = ["true", "on", "1"].includes(blindMode)
+  if (b && typeof b === "string")
+    config.blindMode = ["true", "on", "1"].includes(b)
 
   // load mistakesAllowed
-  if (mistakesAllowed && typeof mistakesAllowed === "string") {
-    const newMistakesAllowed = parseInt(mistakesAllowed)
+  if (m && typeof m === "string") {
+    const newMistakesAllowed = parseInt(m)
     if (Number.isFinite(newMistakesAllowed) && newMistakesAllowed >= 0)
       config.mistakesAllowed = newMistakesAllowed
   }
 
   // load selectedDateRange
-  if (from && typeof from === "string" && Number.isFinite(parseInt(from)))
-    config.minYear = parseInt(from)
-  if (to && typeof to === "string" && Number.isFinite(parseInt(to)))
-    config.maxYear = parseInt(to)
+  if (f && typeof f === "string" && Number.isFinite(parseInt(f)))
+    config.minYear = parseInt(f)
+  if (t && typeof t === "string" && Number.isFinite(parseInt(t)))
+    config.maxYear = parseInt(t)
 
   return config
+}
+
+export function generateURLFromConfig(config: GameConfig): string {
+  const query = []
+  config.decks.forEach(({ deckId, difficulty }) =>
+    query.push(`d=${deckId}${{ [-1]: "-e", [0]: "", [1]: "-h" }[difficulty]}`),
+  )
+  if (config.blindMode) query.push("b=1")
+  if (config.mistakesAllowed !== 0) query.push(`m=${config.mistakesAllowed}`)
+  if (config.minYear) query.push(`f=${config.minYear}`)
+  if (config.maxYear) query.push(`t=${config.maxYear}`)
+  return location.origin + "/?" + query.join("&")
 }
