@@ -1,53 +1,34 @@
 import { useCallback, useEffect, useState } from "react"
-import { createGame, Difficulty, Event, GameState } from "@/lib/timeline"
-import { loadEvents } from "@/lib/io"
+import {
+  AVAILABLE_DECKS,
+  Difficulty,
+  GameConfig,
+  getAllDecks,
+} from "@/lib/timeline"
 import classNames from "classnames"
 import * as Slider from "@radix-ui/react-slider"
-
-const DECK_OPTIONS = {
-  presidents: {
-    name: "American Presidents",
-  },
-  scotus_decisions: {
-    name: "SCOTUS Decisions",
-  },
-  elements: {
-    name: "Element Discoveries",
-  },
-} as const
 
 export default function Menu({
   startGame,
 }: {
-  startGame: (game: GameState) => void
+  startGame: (config: GameConfig) => void
 }) {
-  const [fullDecks, setFullDecks] = useState<Map<string, Event[]>>()
-  useEffect(() => {
-    setFullDecks(new Map())
-    const newDecks = new Map<string, Event[]>()
-    Promise.all(
-      Object.keys(DECK_OPTIONS).map((deckId) =>
-        loadEvents(`/decks/${deckId}.csv`).then((events) => {
-          newDecks.set(deckId, events)
-        }),
-      ),
-    ).then(() => setFullDecks(newDecks))
-  }, [])
-
   const [deckDifficulties, setDeckDifficulties] =
     useState<Map<string, Set<Difficulty>>>()
   useEffect(() => {
-    const newDeckDifficulties = new Map<string, Set<Difficulty>>()
-    fullDecks?.forEach((events, deckId) => {
-      const difficulties = new Set<Difficulty>()
-      events.forEach((event) => difficulties.add(event.difficulty))
-      newDeckDifficulties.set(deckId, difficulties)
+    getAllDecks().then((decks) => {
+      const newDeckDifficulties = new Map<string, Set<Difficulty>>()
+      decks?.forEach((events, deckId) => {
+        const difficulties = new Set<Difficulty>()
+        events.forEach((event) => difficulties.add(event.difficulty))
+        newDeckDifficulties.set(deckId, difficulties)
+      })
+      setDeckDifficulties(newDeckDifficulties)
     })
-    setDeckDifficulties(newDeckDifficulties)
-  }, [fullDecks])
+  }, [])
 
   const [selectedDecks, setSelectedDecks] = useState<
-    { deck: string; difficulty: Difficulty }[]
+    { deckId: string; difficulty: Difficulty }[]
   >([])
   const [hardMode, setHardMode] = useState<boolean>(false)
   const [failuresAllowed, setFailuresAllowed] = useState<number>(0)
@@ -60,7 +41,7 @@ export default function Menu({
     ) =>
       !!selections.find(
         (selection) =>
-          selection.deck === deck && selection.difficulty === difficulty,
+          selection.deckId === deck && selection.difficulty === difficulty,
       ),
     [selectedDecks],
   )
@@ -70,8 +51,8 @@ export default function Menu({
       setSelectedDecks((oldSelectedDecks) => {
         const wasSelected = isSelected(deck, difficulty, oldSelectedDecks)
         let newDeck = [...oldSelectedDecks]
-        newDeck = newDeck.filter((selection) => selection.deck !== deck)
-        if (!wasSelected) newDeck = [...newDeck, { deck, difficulty }]
+        newDeck = newDeck.filter((selection) => selection.deckId !== deck)
+        if (!wasSelected) newDeck = [...newDeck, { deckId: deck, difficulty }]
         return newDeck
       })
     },
@@ -79,69 +60,41 @@ export default function Menu({
   )
 
   const [dateRange, setDateRange] = useState<[min: number, max: number]>()
-  const [selectedDateRange, setSelectedDateRange] =
-    useState<[min: number, max: number]>()
+  const [selectedDateRange, setSelectedDateRange] = useState<
+    [min?: number, max?: number]
+  >([undefined, undefined])
   useEffect(() => {
-    let minYear = Infinity
-    let maxYear = -Infinity
-    selectedDecks.forEach(({ deck, difficulty }) => {
-      fullDecks?.get(deck)?.forEach((event) => {
-        if (event.difficulty <= difficulty) {
-          minYear = Math.min(minYear, event.year)
-          maxYear = Math.max(maxYear, event.year)
-        }
-      })
-    })
-    if (minYear !== Infinity) {
-      setDateRange((oldLimits) => {
-        setSelectedDateRange((oldRange) => {
-          if (oldRange === undefined || oldLimits === undefined)
-            return [minYear, maxYear]
-
-          const newMin = Math.max(
-            Math.min(
-              oldRange[0] === oldLimits[0] ? minYear : oldRange[0],
-              maxYear,
-            ),
-            minYear,
-          )
-          const newMax = Math.max(
-            Math.min(
-              oldRange[1] === oldLimits[1] ? maxYear : oldRange[1],
-              maxYear,
-            ),
-            minYear,
-          )
-          return [newMin, newMax]
+    getAllDecks().then((decks) => {
+      let minYear = Infinity
+      let maxYear = -Infinity
+      selectedDecks.forEach(({ deckId: deck, difficulty }) => {
+        decks.get(deck)?.forEach((event) => {
+          if (event.difficulty <= difficulty) {
+            minYear = Math.min(minYear, event.year)
+            maxYear = Math.max(maxYear, event.year)
+          }
         })
-        return [minYear, maxYear]
       })
-    } else setDateRange(undefined)
-  }, [selectedDecks, fullDecks])
+      if (minYear !== Infinity) {
+        setDateRange([minYear, maxYear])
+        setSelectedDateRange(([oldMin, oldMax]) => [
+          oldMin === undefined || minYear > oldMin ? undefined : oldMin,
+          oldMax === undefined || maxYear < oldMax ? undefined : oldMax,
+        ])
+      } else setDateRange(undefined)
+    })
+  }, [selectedDecks])
 
   const start = useCallback(() => {
-    const deck = selectedDecks
-      .map(({ deck, difficulty }) =>
-        fullDecks?.get(deck)?.filter((event) => event.difficulty <= difficulty),
-      )
-      .filter((deck): deck is Event[] => deck !== undefined)
-      .flat()
-      .filter(
-        (event) =>
-          !selectedDateRange ||
-          (selectedDateRange[0] <= event.year &&
-            event.year <= selectedDateRange[1]),
-      )
-    if (!deck.length) return alert("Select at least one deck to play!")
-    startGame(createGame(deck, { hardMode, failuresAllowed }))
-  }, [
-    selectedDecks,
-    startGame,
-    hardMode,
-    failuresAllowed,
-    fullDecks,
-    selectedDateRange,
-  ])
+    if (!selectedDecks.length) return alert("Select at least one deck to play!")
+    startGame({
+      decks: selectedDecks,
+      hardMode,
+      failuresAllowed,
+      minYear: selectedDateRange[0],
+      maxYear: selectedDateRange[1],
+    })
+  }, [selectedDecks, startGame, hardMode, failuresAllowed, selectedDateRange])
 
   return (
     <form
@@ -181,7 +134,7 @@ export default function Menu({
             </tr>
           </thead>
           <tbody>
-            {Object.entries(DECK_OPTIONS).map(([deck, { name }]) => (
+            {Object.entries(AVAILABLE_DECKS).map(([deck, name]) => (
               <tr key={deck}>
                 <td className="text-right">{name}</td>
                 <td>
@@ -249,16 +202,22 @@ export default function Menu({
           Failures Allowed
         </label>
 
-        {dateRange && selectedDateRange && (
+        {dateRange && (
           <>
             <div className="flex flex-row items-center gap-2 text-gray-500">
               {dateRange[0]}
               <Slider.Root
                 className="relative flex items-center select-none touch-none w-[200px] h-5"
-                value={selectedDateRange}
-                onValueChange={(value) =>
-                  setSelectedDateRange([value[0], value[1]])
-                }
+                value={[
+                  selectedDateRange[0] ?? dateRange[0],
+                  selectedDateRange[1] ?? dateRange[1],
+                ]}
+                onValueChange={(value) => {
+                  setSelectedDateRange([
+                    value[0] !== dateRange[0] ? value[0] : undefined,
+                    value[1] !== dateRange[1] ? value[1] : undefined,
+                  ])
+                }}
                 min={dateRange[0]}
                 max={dateRange[1]}
                 step={1}
@@ -274,7 +233,8 @@ export default function Menu({
               {dateRange[1]}
             </div>
             <p className="-mt-4">
-              from {selectedDateRange[0]} to {selectedDateRange[1]}
+              from {selectedDateRange[0] ?? dateRange[0]} to{" "}
+              {selectedDateRange[1] ?? dateRange[1]}
             </p>
           </>
         )}

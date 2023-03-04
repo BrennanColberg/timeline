@@ -1,3 +1,11 @@
+import { loadEvents } from "./io"
+
+export const AVAILABLE_DECKS = {
+  presidents: "American Presidents",
+  scotus_decisions: "SCOTUS Decisions",
+  elements: "Element Discoveries",
+} as const
+
 export enum Difficulty {
   Easy = -1,
   Normal = 0,
@@ -10,13 +18,35 @@ export type Event = {
   difficulty: Difficulty
 }
 
+export type GameConfig = {
+  decks: { deckId: string; difficulty: Difficulty }[]
+  minYear?: number
+  maxYear?: number
+  failuresAllowed: number
+  hardMode: boolean
+}
 export type GameState = {
+  config: GameConfig
   deck: Event[]
   focused?: Event
   timeline: Event[]
   finished: boolean
-  hardMode: boolean
-  failuresAllowed: number
+  failuresRemaining: number
+}
+
+let allDecksCache: Map<string, Event[]>
+export async function getAllDecks(): Promise<Map<string, Event[]>> {
+  if (!allDecksCache) {
+    allDecksCache = new Map()
+    await Promise.all(
+      Object.keys(AVAILABLE_DECKS).map((deckId) =>
+        loadEvents(`/decks/${deckId}.csv`).then((events) => {
+          allDecksCache.set(deckId, events)
+        }),
+      ),
+    )
+  }
+  return allDecksCache
 }
 
 function pickRandomCard(deck: Event[]): { event?: Event; deck: Event[] } {
@@ -28,23 +58,26 @@ function pickRandomCard(deck: Event[]): { event?: Event; deck: Event[] } {
   }
 }
 
-export function createGame(
-  deck: Event[],
-  {
-    hardMode,
-    failuresAllowed,
-  }: { hardMode?: boolean; failuresAllowed?: number },
-): GameState {
+export async function createGame(config: GameConfig): Promise<GameState> {
+  const allDecks = await getAllDecks()
+  const deck = config.decks.flatMap(({ deckId, difficulty }) =>
+    allDecks.get(deckId)!.filter((event) => {
+      const difficultyCheck = event.difficulty <= difficulty
+      const minYearCheck = !config.minYear || config.minYear <= event.year
+      const maxYearCheck = !config.maxYear || event.year <= config.maxYear
+      return difficultyCheck && minYearCheck && maxYearCheck
+    }),
+  )
   if (deck.length < 2) throw new Error("deck not big enough")
   const { deck: deck2, event: event1 } = pickRandomCard(deck)
   const { deck: deck3, event: event2 } = pickRandomCard(deck2)
   return {
+    config,
     deck: deck3,
     focused: event1!,
     timeline: [event2!],
     finished: false,
-    hardMode: !!hardMode,
-    failuresAllowed: failuresAllowed ?? 0,
+    failuresRemaining: config.failuresAllowed,
   }
 }
 
@@ -91,7 +124,7 @@ export function attemptToPlaceCard(
     if (game.focused === undefined) game.finished = true
     return game
   } catch (error) {
-    if (game.failuresAllowed > 0) game.failuresAllowed--
+    if (game.failuresRemaining > 0) game.failuresRemaining--
     else game.finished = true
     return game
   }

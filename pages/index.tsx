@@ -1,25 +1,22 @@
 import Game from "@/components/Game"
 import Menu from "@/components/Menu"
 import Results from "@/components/Results"
-import { GameState } from "@/lib/timeline"
+import { createGame, GameState, GameConfig } from "@/lib/timeline"
 import { useState, useCallback } from "react"
 
 export default function Home() {
-  const [initialGame, setInitialGame] = useState<GameState>()
   const [game, setGame] = useState<GameState>()
 
-  const startGame = useCallback((game: GameState) => {
-    console.log("starting game", game)
-    setInitialGame(game)
-    setGame(game)
+  const startGame = useCallback(async (config: GameConfig) => {
+    console.log("starting game", config)
+    createGame(config).then(setGame)
   }, [])
 
   const playAgain = useCallback(() => {
-    setGame(initialGame)
-  }, [initialGame])
+    if (game) startGame(game.config)
+  }, [game, startGame])
 
   const returnToMenu = useCallback(() => {
-    setInitialGame(undefined)
     setGame(undefined)
   }, [])
 

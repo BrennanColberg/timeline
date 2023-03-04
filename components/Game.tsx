@@ -26,8 +26,8 @@ export default function Game({
         </p>
       )}
       <p className="text-center text-sm bg-gray-100 border-2 border-t-0 px-1 py-0.5 border-gray-300 ml-auto mr-3 -mb-4 rounded-b-lg text-gray-500 absolute right-0 top-10">
-        {game.failuresAllowed + 1} more strike
-        {game.failuresAllowed !== 0 ? "s" : ""} and <i>you&apos;re out!</i>
+        {game.failuresRemaining + 1} more strike
+        {game.failuresRemaining !== 0 ? "s" : ""} and <i>you&apos;re out!</i>
       </p>
 
       <div className="overflow-y-scroll scrollbar-hide">
@@ -51,12 +51,12 @@ export default function Game({
                   className="text-sm px-2 py-0.5 bg-gray-200 hover:bg-gray-300 transition-colors duration-150 rounded-lg shadow-md ml-4 my-1"
                   onClick={() => {
                     const newGame = attemptToPlaceCard(game!, i - 1)
-                    if (newGame.failuresAllowed < game.failuresAllowed)
+                    if (newGame.failuresRemaining < game.failuresRemaining)
                       alert(
                         `Incorrect! You now have ${
-                          newGame.failuresAllowed + 1
+                          newGame.failuresRemaining + 1
                         } strike${
-                          newGame.failuresAllowed === 0 ? "" : "s"
+                          newGame.failuresRemaining === 0 ? "" : "s"
                         } left.`,
                       )
                     setGame(newGame)
@@ -87,7 +87,7 @@ export default function Game({
                   )}
                 >
                   {i !== 0
-                    ? game.hardMode && title !== "now"
+                    ? game.config.hardMode && title !== "now"
                       ? "????"
                       : year
                     : title}
