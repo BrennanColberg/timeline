@@ -73,6 +73,7 @@ export function attemptToPlaceCard(
     const { deck: newDeck, event: newFocused } = pickRandomCard(game.deck)
     game.deck = newDeck
     game.focused = newFocused
+    if (game.focused === undefined) game.finished = true
     return game
   } catch (error) {
     return { ...game, finished: true }
