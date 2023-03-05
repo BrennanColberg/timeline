@@ -8,7 +8,8 @@ import {
 } from "./when"
 
 export const AVAILABLE_DECKS = {
-  presidents: "American Presidents",
+  potus: "U.S. Presidents",
+  vpotus: "U.S. Vice Presidents",
   scotus_decisions: "SCOTUS Decisions",
   elements: "Element Discoveries",
   statehood: "U.S. Statehood Dates",
