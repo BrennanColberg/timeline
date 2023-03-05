@@ -1,4 +1,11 @@
 import { loadEvents } from "./io"
+import {
+  When,
+  whenAfter,
+  whenAtOrAfter,
+  whenAtOrBefore,
+  whenBefore,
+} from "./when"
 
 export const AVAILABLE_DECKS = {
   presidents: "American Presidents",
@@ -18,7 +25,7 @@ export enum Difficulty {
 }
 
 export type Event = {
-  year: number
+  when: When
   title: string
   difficulty: Difficulty
 }
@@ -68,8 +75,10 @@ export async function createGame(config: GameConfig): Promise<GameState> {
   const deck = config.decks.flatMap(({ deckId, difficulty }) =>
     allDecks.get(deckId)!.filter((event) => {
       const difficultyCheck = event.difficulty <= difficulty
-      const minYearCheck = !config.minYear || config.minYear <= event.year
-      const maxYearCheck = !config.maxYear || event.year <= config.maxYear
+      const minYearCheck =
+        !config.minYear || whenAtOrAfter(event.when, { year: config.minYear })
+      const maxYearCheck =
+        !config.maxYear || whenAtOrBefore(event.when, { year: config.maxYear })
       return difficultyCheck && minYearCheck && maxYearCheck
     }),
   )
@@ -99,19 +108,26 @@ export function attemptToPlaceCard(
       throw new Error("index out of bounds")
     // before everything on the timeline
     if (indexAfterLocation === 0) {
-      if (game.timeline[0].year < game.focused.year)
+      if (whenBefore(game.timeline[0].when, game.focused.when))
         throw new Error("too early")
     }
     // after everything on the timeline
     else if (indexAfterLocation === game.timeline.length) {
-      if (game.timeline[game.timeline.length - 1].year > game.focused.year)
+      if (
+        whenAfter(
+          game.timeline[game.timeline.length - 1].when,
+          game.focused.when,
+        )
+      )
         throw new Error("too late")
     }
     // in the middle of the timeline
     else {
-      if (!(game.timeline[indexAfterLocation - 1].year <= game.focused.year))
+      if (
+        whenAfter(game.timeline[indexAfterLocation - 1].when, game.focused.when)
+      )
         throw new Error("event placed too late")
-      if (!(game.focused.year <= game.timeline[indexAfterLocation].year))
+      if (whenBefore(game.timeline[indexAfterLocation].when, game.focused.when))
         throw new Error("event placed too early")
     }
 

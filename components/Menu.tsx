@@ -71,8 +71,8 @@ export default function Menu({
       selectedDecks.forEach(({ deckId: deck, difficulty }) => {
         decks.get(deck)?.forEach((event) => {
           if (event.difficulty <= difficulty) {
-            minYear = Math.min(minYear, event.year)
-            maxYear = Math.max(maxYear, event.year)
+            minYear = Math.min(minYear, event.when.year)
+            maxYear = Math.max(maxYear, event.when.year)
           }
         })
       })

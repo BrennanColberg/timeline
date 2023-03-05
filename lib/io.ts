@@ -1,4 +1,5 @@
 import { Difficulty, Event, GameConfig, isValidDeckId } from "./timeline"
+import { parseWhen } from "./when"
 
 function csvToJson(csv: string): object[] {
   const lines = csv.split("\n")
@@ -26,13 +27,13 @@ export async function loadEvents(
   if (response.status !== 200) throw new Error("invalid deck url")
   const text = await response.text()
   const rawEvents = csvToJson(text) as {
-    year: string
+    when: string
     title: string
     difficulty?: string
   }[]
   let events: Event[] = rawEvents.map((event) => ({
     title: event.title,
-    year: parseInt(event.year),
+    when: parseWhen(event.when),
     difficulty: parseInt(event.difficulty ?? "0") as Difficulty,
   }))
   events = events.filter((event) => event.difficulty <= maxDifficulty)

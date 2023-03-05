@@ -1,4 +1,4 @@
-year,title,difficulty
+when,title,difficulty
 1788,George Washington First Elected,-1
 1792,George Washington Re-Elected
 1796,John Adams Elected
@@ -76,5 +76,5 @@ year,title,difficulty
 2012,Barack Obama Re-Elected,-1
 2016,Donald Trump Elected,-1
 2019,First Impeachment of Donald Trump
-2020,Joe Biden Elected,-1
+2020-11-03,Joe Biden Elected,-1
 2021,Second Impeachment of Donald Trump

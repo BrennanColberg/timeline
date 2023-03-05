@@ -1,4 +1,5 @@
 import { GameState, attemptToPlaceCard } from "@/lib/timeline"
+import { whenToString } from "@/lib/when"
 import classNames from "classnames"
 import { Dispatch, Fragment, SetStateAction } from "react"
 
@@ -34,17 +35,21 @@ export default function Game({
         <ul className="mx-4 my-8 border-l-8 border-gray-400">
           {[
             {
-              year: -Infinity,
+              when: { year: -Infinity },
               title: "beginning of the universe",
               difficulty: undefined,
             },
             ...game.timeline,
             {
-              year: new Date().getFullYear(),
+              when: {
+                year: new Date().getFullYear(),
+                month: new Date().getMonth() + 1,
+                day: new Date().getDate(),
+              },
               title: "now",
               difficulty: undefined,
             },
-          ].map(({ title, year, difficulty }, i) => (
+          ].map(({ title, when, difficulty }, i) => (
             <Fragment key={title}>
               {i !== 0 && (
                 <button
@@ -54,7 +59,7 @@ export default function Game({
                     if (newGame.mistakesRemaining < game.mistakesRemaining)
                       alert(
                         `Nope! The correct year is ${
-                          game.focused!.year
+                          game.focused!.when.year
                         }.\n\nYou now have ${
                           newGame.mistakesRemaining + 1
                         } strike${
@@ -91,7 +96,7 @@ export default function Game({
                   {i !== 0
                     ? game.config.blindMode && title !== "now"
                       ? "????"
-                      : year
+                      : whenToString(when)
                     : title}
                 </div>
                 {i !== 0 && <span>{title}</span>}
