@@ -1,5 +1,5 @@
 import { GameState, attemptToPlaceCard } from "@/lib/timeline"
-import { whenToString } from "@/lib/when"
+import { whensEqual, whenToString } from "@/lib/when"
 import classNames from "classnames"
 import { Dispatch, Fragment, SetStateAction } from "react"
 
@@ -49,9 +49,9 @@ export default function Game({
               title: "now",
               difficulty: undefined,
             },
-          ].map(({ title, when, difficulty }, i) => (
+          ].map(({ title, when, difficulty }, i, array) => (
             <Fragment key={title}>
-              {i !== 0 && (
+              {i !== 0 && !whensEqual(array[i - 1].when, when) && (
                 <button
                   className="text-sm px-2 py-0.5 bg-gray-200 hover:bg-gray-300 transition-colors duration-150 rounded-lg shadow-md ml-4 my-1"
                   onClick={() => {

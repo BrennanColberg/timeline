@@ -23,6 +23,9 @@ export function compareWhens(a: When, b: When): number {
   return a.day - b.day
 }
 
+export function whensEqual(a: When, b: When): boolean {
+  return compareWhens(a, b) === 0
+}
 export function whenBefore(a: When, b: When): boolean {
   return compareWhens(a, b) < 0
 }
