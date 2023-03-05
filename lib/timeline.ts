@@ -11,6 +11,7 @@ export const AVAILABLE_DECKS = {
   presidents: "American Presidents",
   scotus_decisions: "SCOTUS Decisions",
   elements: "Element Discoveries",
+  statehood: "U.S. Statehood Dates",
 } as const
 export function isValidDeckId(
   deckId: string,
