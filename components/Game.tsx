@@ -96,7 +96,11 @@ export default function Game({
                   {i !== 0
                     ? game.config.blindMode && title !== "now"
                       ? "????"
-                      : whenToString(when)
+                      : whenToString(
+                          when,
+                          array[i - 1]?.when,
+                          array[i + 1]?.when,
+                        )
                     : title}
                 </div>
                 {i !== 0 && <span>{title}</span>}

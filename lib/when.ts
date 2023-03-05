@@ -39,6 +39,19 @@ export function whenAtOrAfter(a: When, b: When): boolean {
   return compareWhens(a, b) >= 0
 }
 
-export function whenToString(when: When): string {
-  return when.year + ""
+export function whenToString(
+  when: When,
+  ...context: (When | undefined)[]
+): string {
+  let result = "" + when.year // always show year
+  if (when.month !== undefined && context.find((w) => w?.year === when.year)) {
+    result += " / " + ("0" + when.month).slice(-2)
+    if (
+      when.day !== undefined &&
+      context.find((w) => w?.year === when.year && w?.month === when.month)
+    ) {
+      result += " / " + ("0" + when.month).slice(-2)
+    }
+  }
+  return result
 }
