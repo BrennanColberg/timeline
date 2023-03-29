@@ -9,6 +9,9 @@ export default function Document() {
           data-domain="timeline.colberg.dev"
           src="https://plausible.io/js/script.js"
         />
+        <script
+          src="https://brennancolberg.github.io/by-brennan/by-brennan.js"
+        />
       </Head>
       <body>
         <Main />
